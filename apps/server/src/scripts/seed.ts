@@ -1,4 +1,4 @@
-import { PrismaClient, Exercise } from '@prisma/client';
+import { Exercise, PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();

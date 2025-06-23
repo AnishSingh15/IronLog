@@ -1,8 +1,8 @@
+import { SetRecord } from '@prisma/client';
 import { Response, Router } from 'express';
 import { z } from 'zod';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { workoutService } from '../services/workout.service';
-import { SetRecord } from '@prisma/client';
 
 const router = Router();
 
