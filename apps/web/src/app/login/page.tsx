@@ -183,6 +183,7 @@ export default function LoginPage() {
                     error={!!errors.email}
                     helperText={errors.email?.message}
                     sx={{ mb: 2 }}
+                    inputProps={{ 'data-testid': 'email-input' }}
                   />
 
                   <TextField
@@ -202,6 +203,7 @@ export default function LoginPage() {
                         </InputAdornment>
                       ),
                     }}
+                    inputProps={{ 'data-testid': 'password-input' }}
                     sx={{ mb: 3 }}
                   />
 
@@ -212,6 +214,7 @@ export default function LoginPage() {
                     size="large"
                     disabled={isLoading}
                     startIcon={isLoading ? <CircularProgress size={20} /> : <LoginOutlined />}
+                    data-testid="login-button"
                     sx={{
                       py: 1.5,
                       fontSize: '1.1rem',
@@ -253,6 +256,7 @@ export default function LoginPage() {
                     component={Link}
                     href="/register"
                     variant="text"
+                    data-testid="register-link"
                     sx={{
                       fontWeight: 'bold',
                       color: 'primary.main',

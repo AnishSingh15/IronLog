@@ -1,10 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { test, expect } from './test-utils';
 
 test.describe('Authentication Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-  });
-
   test('should redirect to login from protected pages', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(page).toHaveURL('/login');

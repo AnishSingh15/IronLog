@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test, expect } from './test-utils';
 
 test.describe('Dashboard Workflow', () => {
   test.beforeEach(async ({ page }) => {

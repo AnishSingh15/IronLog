@@ -176,6 +176,7 @@ export default function RegisterPage() {
                     error={!!errors.name}
                     helperText={errors.name?.message}
                     {...register('name')}
+                    inputProps={{ 'data-testid': 'name-input' }}
                     sx={{ mb: 2 }}
                   />
 
@@ -190,6 +191,7 @@ export default function RegisterPage() {
                     error={!!errors.email}
                     helperText={errors.email?.message}
                     {...register('email')}
+                    inputProps={{ 'data-testid': 'email-input' }}
                     sx={{ mb: 2 }}
                   />
 
@@ -217,6 +219,7 @@ export default function RegisterPage() {
                         </InputAdornment>
                       ),
                     }}
+                    inputProps={{ 'data-testid': 'password-input' }}
                     sx={{ mb: 2 }}
                   />
 
@@ -244,6 +247,7 @@ export default function RegisterPage() {
                         </InputAdornment>
                       ),
                     }}
+                    inputProps={{ 'data-testid': 'confirm-password-input' }}
                     sx={{ mb: 3 }}
                   />
 
@@ -254,6 +258,7 @@ export default function RegisterPage() {
                     size="large"
                     disabled={isLoading}
                     startIcon={isLoading ? <CircularProgress size={20} /> : <PersonAdd />}
+                    data-testid="register-button"
                     sx={{
                       py: 1.5,
                       fontSize: '1.1rem',
