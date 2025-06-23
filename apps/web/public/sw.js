@@ -174,8 +174,10 @@ async function handlePageRequest(request) {
   const fetchPromise = fetch(request)
     .then(networkResponse => {
       if (networkResponse.ok) {
+        // Clone the response before using it
+        const responseToCache = networkResponse.clone();
         const cache = caches.open(RUNTIME_CACHE);
-        cache.then(c => c.put(request, networkResponse.clone()));
+        cache.then(c => c.put(request, responseToCache));
       }
       return networkResponse;
     })
