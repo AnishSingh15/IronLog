@@ -103,6 +103,17 @@ jobs:
       - name: Generate Prisma client
         run: cd apps/server && pnpm prisma generate
 
+      - name: Build applications
+        run: pnpm build
+
+      - name: Verify build artifacts
+        run: |
+          echo "Checking build artifacts..."
+          ls -la apps/server/
+          ls -la apps/server/dist/ || echo "No dist directory found"
+          ls -la apps/web/
+          ls -la apps/web/.next/ || echo "No .next directory found"
+
       - name: Setup test database
         run: |
           cd apps/server
@@ -220,20 +231,29 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
+          path: .
 
       - name: Setup test database
         run: |
           cd apps/server
-          npx prisma migrate deploy
-          npx prisma db seed
+          pnpm prisma migrate deploy
+          pnpm prisma db seed
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ironlog_e2e
 
       - name: Start backend server
         run: |
           cd apps/server
-          npm start &
-          sleep 5
+          echo "Starting backend server..."
+          echo "DATABASE_URL: $DATABASE_URL"
+          echo "JWT_SECRET: $JWT_SECRET"
+          echo "PORT: $PORT"
+          pnpm start > server.log 2>&1 &
+          SERVER_PID=$!
+          echo "Server started with PID: $SERVER_PID"
+          sleep 10
+          echo "Server log:"
+          cat server.log || echo "No server log found"
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ironlog_e2e
           JWT_SECRET: test-secret
@@ -243,8 +263,8 @@ jobs:
       - name: Start frontend server
         run: |
           cd apps/web
-          npm start &
-          sleep 10
+          pnpm start &
+          sleep 15
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
 
