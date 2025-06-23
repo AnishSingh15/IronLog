@@ -1,8 +1,15 @@
-import { SetRecord } from '@prisma/client';
+import { SetRecord, WorkoutDay, Exercise } from '@prisma/client';
 import { Response, Router } from 'express';
 import { z } from 'zod';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { workoutService } from '../services/workout.service';
+
+// Type for workout with relations
+type WorkoutWithSetRecords = WorkoutDay & {
+  setRecords: (SetRecord & {
+    exercise: Exercise;
+  })[];
+};
 
 const router = Router();
 
@@ -145,7 +152,7 @@ router.get('/history', async (req: AuthRequest, res: Response) => {
     );
 
     // Calculate completion percentage for each workout
-    const workoutsWithCompletion = workoutHistory.map((workout: any) => {
+    const workoutsWithCompletion = workoutHistory.map((workout: WorkoutWithSetRecords) => {
       const totalSets = workout.setRecords.length;
       const completedSets = workout.setRecords.filter(
         (set: SetRecord) => set.actualWeight !== null && set.actualReps !== null
