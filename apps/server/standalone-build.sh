@@ -22,27 +22,52 @@ rm -f pnpm-lock.yaml
 rm -f yarn.lock
 rm -f .pnpmfile.cjs
 
+# Check for any workspace configuration in parent directories
+echo "🔍 Debugging workspace detection..."
+echo "Current directory: $(pwd)"
+echo "Parent directories content:"
+ls -la ../
+ls -la ../../
+echo "Environment variables:"
+env | grep -i workspace || echo "No workspace env vars found"
+env | grep -i pnpm || echo "No pnpm env vars found"
+
 # Set environment variables to disable workspace detection
 export NPM_CONFIG_WORKSPACES=false
 export NPM_CONFIG_WORKSPACE_ROOT=false
+export NPM_CONFIG_WORKSPACE=false
 unset PNPM_HOME
 unset PNPM_VERSION
+unset npm_config_workspace
+unset npm_config_workspaces
 
 # Create isolated npm configuration
 echo "📝 Creating isolated npm configuration..."
 cat > .npmrc << EOF
 workspaces=false
+workspace=false
 package-lock=false
 save-exact=true
 engine-strict=true
 legacy-peer-deps=true
 fund=false
 audit=false
+prefer-offline=false
 EOF
 
-# Install dependencies with explicit workspace disabling
-echo "📦 Installing dependencies (isolated mode)..."
-npm install --legacy-peer-deps
+# Also create a package-lock.json stub to prevent workspace detection
+echo '{"lockfileVersion": 1}' > package-lock.json
+
+# Install dependencies with maximum isolation
+echo "📦 Installing dependencies (trying yarn as fallback)..."
+if NPM_CONFIG_WORKSPACES=false NPM_CONFIG_WORKSPACE=false npm install --legacy-peer-deps --no-fund --no-audit; then
+    echo "✅ npm install succeeded"
+else
+    echo "⚠️ npm install failed, trying yarn..."
+    # Try with yarn as a fallback
+    npm install -g yarn
+    yarn install --no-lockfile
+fi
 
 # Check if installation was successful
 if [ $? -ne 0 ]; then
