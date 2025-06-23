@@ -9,7 +9,7 @@
     "start": "node dist/index.js",
     "test": "echo 'Tests temporarily disabled for compatibility' && exit 0",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint .",
+    "lint": "eslint src/",
     "type-check": "echo 'TypeScript checking temporarily disabled for compatibility' && exit 0",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx src/scripts/seed.ts",
