@@ -25,6 +25,8 @@ rm -f .pnpmfile.cjs
 # Set environment variables to disable workspace detection
 export NPM_CONFIG_WORKSPACES=false
 export NPM_CONFIG_WORKSPACE_ROOT=false
+unset PNPM_HOME
+unset PNPM_VERSION
 
 # Create isolated npm configuration
 echo "📝 Creating isolated npm configuration..."
@@ -40,7 +42,7 @@ EOF
 
 # Install dependencies with explicit workspace disabling
 echo "📦 Installing dependencies (isolated mode)..."
-npm install --no-workspaces --ignore-workspace-root-check --legacy-peer-deps
+npm install --legacy-peer-deps
 
 # Check if installation was successful
 if [ $? -ne 0 ]; then
@@ -50,20 +52,20 @@ fi
 
 # Generate Prisma client
 echo "🔄 Generating Prisma client..."
-npx prisma generate
+./node_modules/.bin/prisma generate
 
 # Run database migrations
 echo "🗄️ Running database migrations..."
-npx prisma migrate deploy
+./node_modules/.bin/prisma migrate deploy
 
 # Build the TypeScript application
 echo "🔨 Building TypeScript application..."
-npx prisma generate && npx tsc
+./node_modules/.bin/prisma generate && ./node_modules/.bin/tsc
 
 # Seed the database (optional, only for initial deployment)
 if [ "$SEED_DATABASE" = "true" ]; then
   echo "🌱 Seeding database..."
-  npx prisma db seed
+  ./node_modules/.bin/prisma db seed
 fi
 
 echo "✅ Build completed successfully!"
