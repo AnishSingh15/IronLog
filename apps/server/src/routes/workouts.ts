@@ -1,4 +1,4 @@
-import { SetRecord, WorkoutDay, Exercise } from '@prisma/client';
+import { Exercise, SetRecord, WorkoutDay } from '@prisma/client';
 import { Response, Router } from 'express';
 import { z } from 'zod';
 import { authenticate, AuthRequest } from '../middleware/auth';
