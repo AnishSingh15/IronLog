@@ -1,4 +1,4 @@
-import { test, expect } from './test-utils';
+import { expect, test } from './test-utils';
 
 test.describe('History and Profile Pages', () => {
   test.beforeEach(async ({ page }) => {

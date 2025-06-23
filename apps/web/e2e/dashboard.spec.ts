@@ -1,4 +1,4 @@
-import { test, expect } from './test-utils';
+import { expect, test } from './test-utils';
 
 test.describe('Dashboard Workflow', () => {
   test.beforeEach(async ({ page }) => {

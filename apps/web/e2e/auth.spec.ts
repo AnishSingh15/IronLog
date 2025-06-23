@@ -1,4 +1,4 @@
-import { test, expect } from './test-utils';
+import { expect, test } from './test-utils';
 
 test.describe('Authentication Flow', () => {
   test.beforeEach(async ({ page }) => {
@@ -49,7 +49,7 @@ test.describe('Authentication Flow', () => {
 
     // Should redirect to dashboard after successful login
     await expect(page).toHaveURL('/dashboard');
-    
+
     // Should see the dashboard content
     await expect(page.locator('h5')).toContainText('Ready to Start Your Workout?');
   });

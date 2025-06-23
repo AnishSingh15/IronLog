@@ -3,6 +3,7 @@
 ## 🧪 Testing the Complete PWA Implementation
 
 ### Prerequisites
+
 - Node.js 18+
 - pnpm installed
 - PostgreSQL running
@@ -11,6 +12,7 @@
 ### Local Development Testing
 
 #### 1. **Start Development Environment**
+
 ```bash
 # Clone and setup (if not already done)
 git clone https://github.com/AnishSingh15/Ironlog.git
@@ -25,6 +27,7 @@ pnpm dev
 ```
 
 #### 2. **Verify Services**
+
 - Frontend: http://localhost:3000
 - Backend: http://localhost:3001
 - Backend Health: http://localhost:3001/health
@@ -33,21 +36,25 @@ pnpm dev
 #### 3. **PWA Feature Testing**
 
 ##### **Service Worker**
+
 1. Open Chrome DevTools → Application → Service Workers
 2. Verify "IronLog Service Worker" is registered and active
 3. Check cache storage for static assets
 
 ##### **Install Capability**
+
 1. **Desktop (Chrome/Edge):** Look for install icon in address bar
 2. **Mobile Chrome:** Menu → "Add to Home Screen"
 3. **Mobile Safari:** Share → "Add to Home Screen"
 
 ##### **Offline Functionality**
+
 1. Open DevTools → Network → Check "Offline"
 2. Refresh page - should still load core pages
 3. Check for offline indicator in UI
 
 ##### **Push Notifications**
+
 1. Click "Enable Notifications" button
 2. Grant permission when prompted
 3. Test notifications (requires manual trigger)
@@ -55,17 +62,20 @@ pnpm dev
 ### Production Testing
 
 #### 1. **Build Production Version**
+
 ```bash
 pnpm build
 pnpm start
 ```
 
 #### 2. **PWA Lighthouse Audit**
+
 1. Open Chrome DevTools → Lighthouse
 2. Select "Progressive Web App" audit
 3. Run audit and verify score > 90
 
 #### 3. **Multi-Device Testing**
+
 - Desktop: Chrome, Firefox, Edge, Safari
 - Mobile: iOS Safari, Android Chrome
 - Tablet: iPad Safari, Android Chrome
@@ -73,11 +83,13 @@ pnpm start
 ### CI/CD Testing
 
 #### 1. **GitHub Actions Workflow**
+
 - Push changes to main branch
 - Monitor workflow at: https://github.com/AnishSingh15/Ironlog/actions
 - All jobs should pass: lint, test, build, e2e
 
 #### 2. **Local CI Simulation**
+
 ```bash
 # Run all CI checks locally
 pnpm lint
@@ -89,6 +101,7 @@ pnpm test
 ### Database Testing
 
 #### 1. **Prisma Operations**
+
 ```bash
 cd apps/server
 
@@ -106,6 +119,7 @@ pnpm prisma studio
 ```
 
 #### 2. **API Testing**
+
 ```bash
 # Health check
 curl http://localhost:3001/health
@@ -119,15 +133,18 @@ curl -X POST http://localhost:3001/api/v1/auth/register \
 ### Mobile Testing
 
 #### 1. **Network Setup**
+
 1. Ensure mobile device is on same WiFi network
 2. Find your computer's IP address
 3. Access http://[YOUR_IP]:3000 from mobile
 
 #### 2. **PWA Installation**
+
 1. **iOS:** Safari → Share → Add to Home Screen
 2. **Android:** Chrome → Menu → Add to Home Screen
 
 #### 3. **Offline Testing**
+
 1. Install PWA on mobile
 2. Turn off WiFi/cellular
 3. Open installed app - should work offline
@@ -135,6 +152,7 @@ curl -X POST http://localhost:3001/api/v1/auth/register \
 ### Performance Testing
 
 #### 1. **Lighthouse Metrics**
+
 - Performance: > 90
 - Accessibility: > 90
 - Best Practices: > 90
@@ -142,6 +160,7 @@ curl -X POST http://localhost:3001/api/v1/auth/register \
 - PWA: > 90
 
 #### 2. **Bundle Analysis**
+
 ```bash
 cd apps/web
 pnpm build
@@ -151,11 +170,13 @@ pnpm build
 ### Security Testing
 
 #### 1. **JWT Token Handling**
+
 1. Login and inspect cookies
 2. Verify httpOnly refresh token
 3. Test token expiration/refresh
 
 #### 2. **HTTPS Requirements**
+
 - PWA features require HTTPS in production
 - Service Worker requires secure context
 
@@ -164,15 +185,18 @@ pnpm build
 #### Common Issues
 
 1. **Service Worker Not Registering**
+
    - Check browser console for errors
    - Verify HTTPS or localhost
    - Clear browser cache
 
 2. **Prisma Client Not Found**
+
    - Run `pnpm prisma generate`
    - Check DATABASE_URL environment variable
 
 3. **Build Failures**
+
    - Clear node_modules and reinstall
    - Check TypeScript errors
    - Verify all dependencies installed
@@ -183,6 +207,7 @@ pnpm build
    - Ensure same network connection
 
 #### Debug Commands
+
 ```bash
 # Check service status
 pnpm dev

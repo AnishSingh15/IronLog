@@ -6,7 +6,7 @@ export const test = base.extend({
   page: async ({ page }, use) => {
     // Set longer timeout for slower CI environments
     page.setDefaultTimeout(60000);
-    
+
     await use(page);
   },
 });
