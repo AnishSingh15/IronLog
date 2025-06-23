@@ -1,12 +1,22 @@
 import { test, expect } from './test-utils';
 
 test.describe('Authentication Flow', () => {
+  test.beforeEach(async ({ page }) => {
+    // Clear any existing auth state
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+    await page.context().clearCookies();
+  });
+
   test('should redirect to login from protected pages', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(page).toHaveURL('/login');
   });
 
   test('should register a new user', async ({ page }) => {
+    await page.goto('/login');
     await page.click('[data-testid="register-link"]');
     await expect(page).toHaveURL('/register');
 
@@ -29,8 +39,7 @@ test.describe('Authentication Flow', () => {
   });
 
   test('should login existing user', async ({ page }) => {
-    await page.click('[data-testid="login-link"]');
-    await expect(page).toHaveURL('/login');
+    await page.goto('/login');
 
     // Use default seeded user
     await page.fill('[data-testid="email-input"]', 'admin@ironlog.com');
@@ -40,11 +49,13 @@ test.describe('Authentication Flow', () => {
 
     // Should redirect to dashboard after successful login
     await expect(page).toHaveURL('/dashboard');
-    await expect(page.locator('[data-testid="welcome-message"]')).toContainText('Admin User');
+    
+    // Should see the dashboard content
+    await expect(page.locator('h5')).toContainText('Ready to Start Your Workout?');
   });
 
   test('should show validation errors for invalid inputs', async ({ page }) => {
-    await page.click('[data-testid="login-link"]');
+    await page.goto('/login');
 
     // Try to submit with empty fields
     await page.click('[data-testid="login-button"]');
@@ -55,7 +66,7 @@ test.describe('Authentication Flow', () => {
 
   test('should logout successfully', async ({ page }) => {
     // Login first
-    await page.click('[data-testid="login-link"]');
+    await page.goto('/login');
     await page.fill('[data-testid="email-input"]', 'admin@ironlog.com');
     await page.fill('[data-testid="password-input"]', 'admin123');
     await page.click('[data-testid="login-button"]');

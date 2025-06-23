@@ -963,6 +963,7 @@ export default function DashboardPage() {
               logout();
               setDrawerOpen(false);
             }}
+            data-testid="logout-button"
             sx={{
               borderRadius: 2,
               '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
@@ -1094,7 +1095,7 @@ export default function DashboardPage() {
               <PersonIcon sx={{ mr: 1 }} />
               Profile
             </MenuItem>
-            <MenuItem onClick={handleLogout}>
+            <MenuItem onClick={handleLogout} data-testid="logout-menu-item">
               <LogoutIcon sx={{ mr: 1 }} />
               Logout
             </MenuItem>
