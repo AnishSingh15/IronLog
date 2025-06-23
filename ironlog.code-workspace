@@ -1,0 +1,22 @@
+{
+  "folders": [
+    {
+      "name": "IronLog",
+      "path": ".",
+    },
+  ],
+  "settings": {
+    "git.defaultCloneDirectory": ".",
+    "git.ignoredRepositories": ["./apps/web", "./apps/server", "./packages/ui"],
+    "git.detectSubmodules": false,
+    "scm.repositories.visible": 1,
+  },
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.vscode-typescript-next",
+      "prisma.prisma",
+    ],
+  },
+}

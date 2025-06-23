@@ -1,0 +1,57 @@
+# Base image
+FROM node:18-alpine AS base
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY apps/server/package.json ./apps/server/
+COPY packages/ui/package.json ./packages/ui/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Development stage
+FROM base AS development
+COPY . .
+EXPOSE 3001
+CMD ["pnpm", "--filter", "server", "dev"]
+
+# Build stage
+FROM base AS build
+COPY . .
+RUN pnpm build
+
+# Production stage
+FROM node:18-alpine AS production
+RUN npm install -g pnpm
+
+WORKDIR /app
+
+# Copy package files
+COPY --from=build /app/package.json /app/pnpm-workspace.yaml ./
+COPY --from=build /app/apps/server/package.json ./apps/server/
+
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile
+
+# Copy built application
+COPY --from=build /app/apps/server/dist ./apps/server/dist
+COPY --from=build /app/apps/server/prisma ./apps/server/prisma
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S ironlog -u 1001
+
+# Change ownership
+USER ironlog
+
+EXPOSE 3001
+
+ENV NODE_ENV=production
+
+CMD ["node", "apps/server/dist/index.js"]

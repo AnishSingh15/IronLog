@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ironlog
+      POSTGRES_USER: ironlog
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./apps/server/docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ironlog -d ironlog']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+      target: development
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://ironlog:password@postgres:5432/ironlog
+      - JWT_SECRET=dev-super-secret-jwt-key
+      - JWT_REFRESH_SECRET=dev-super-secret-refresh-key
+      - PORT=3001
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./apps/server:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: pnpm dev
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      target: development
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - server
+    command: pnpm dev
+
+volumes:
+  postgres_data:

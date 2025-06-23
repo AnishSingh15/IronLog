@@ -1,0 +1,8 @@
+{
+  "extends": ["../../eslint.config.cjs"],
+  "ignorePatterns": ["dist/", "node_modules/", "*.d.ts", "*.js", "*.mjs"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "react/prop-types": "off"
+  }
+}
