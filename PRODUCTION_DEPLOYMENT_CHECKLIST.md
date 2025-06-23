@@ -1,39 +1,39 @@
 # 🚀 IronLog Production Deployment Checklist
 
-## Current Status: ⚠️ CONFIGURATION NEEDED
+## Current Status: 🔄 BACKEND DATABASE SETUP NEEDED
 
-Based on the deployment logs, here are the specific fixes needed:
+✅ **FRONTEND FIXED**: CORS errors resolved, environment variables properly configured
+⚠️ **BACKEND ISSUE**: Database not properly migrated/seeded (500 Internal Server Error)
 
-## 🔧 **IMMEDIATE FIXES REQUIRED**
+## 🔧 **NEXT STEPS REQUIRED**
 
-### 1. **Vercel Environment Variables** (CRITICAL)
+### 1. **✅ Vercel Environment Variables** (COMPLETED)
 
-**Problem**: Frontend is trying to connect to `http://localhost:3001` instead of production backend
+**Problem**: ~~Frontend is trying to connect to `http://localhost:3001` instead of production backend~~
 
-**Solution**: Add environment variable on Vercel:
+**✅ FIXED**: Environment variable properly set on Vercel
 
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard) → Your Project → Settings → Environment Variables
-2. Add:
+### 2. **🔧 Backend Database Setup** (CRITICAL - CURRENT ISSUE)
+
+**Problem**: Backend returning 500 Internal Server Error on user registration
+
+**Root Cause**: Database migrations not run, Prisma client not properly generated
+
+**Solution**: 
+1. Go to [Render Dashboard](https://dashboard.render.com/) → Your backend service → **Shell**
+2. Run these commands:
+   ```bash
+   npx prisma generate
+   npx prisma migrate deploy  
+   npx prisma db seed
    ```
-   NEXT_PUBLIC_API_URL=https://ironlog.onrender.com/api/v1
-   ```
-3. **Important**: Remove any trailing slashes
-4. Redeploy the frontend after adding this variable
+3. Or update Build Command to: `npm install && npx prisma generate && npx prisma migrate deploy && npm run build`
 
-### 2. **Render Backend Environment Variables**
+**Verification**: 
+- Test: `curl -X POST "https://ironlog.onrender.com/api/v1/auth/register" -H "Content-Type: application/json" -d '{"name":"Test","email":"test@example.com","password":"test123"}'`
+- Should return success response, not 500 error
 
-Ensure these are set on your Render service:
-
-```bash
-NODE_ENV=production
-DATABASE_URL=postgresql://username:password@host:port/database
-JWT_SECRET=your-super-secure-jwt-secret-at-least-32-characters
-JWT_REFRESH_SECRET=your-super-secure-refresh-secret-at-least-32-characters
-PORT=3001
-FRONTEND_URL=https://your-vercel-app.vercel.app
-```
-
-### 3. **Service Worker Cache Issue** (FIXED)
+### 3. **Service Worker Cache Issue** (✅ FIXED)
 
 ✅ The "Response body is already used" error has been fixed in the service worker by properly cloning responses before caching.
 
