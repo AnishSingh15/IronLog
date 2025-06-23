@@ -4,7 +4,8 @@
   "description": "IronLog Express API Server",
   "main": "dist/src/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "prisma generate && tsc",
+    "postinstall": "prisma generate",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/src/index.js",
     "test": "echo 'Tests temporarily disabled for compatibility' && exit 0",

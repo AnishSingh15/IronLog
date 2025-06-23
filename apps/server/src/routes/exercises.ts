@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Exercise } from '@prisma/client';
 import { Response, Router } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
@@ -14,7 +14,7 @@ router.get('/', authenticate, async (_req: AuthRequest, res: Response) => {
 
     // Group exercises by muscle group
     const exercisesByMuscleGroup = exercises.reduce(
-      (acc: Record<string, typeof exercises>, exercise) => {
+      (acc: Record<string, Exercise[]>, exercise: Exercise) => {
         const muscleGroup = exercise.muscleGroup;
         if (!acc[muscleGroup]) {
           acc[muscleGroup] = [];
@@ -22,7 +22,7 @@ router.get('/', authenticate, async (_req: AuthRequest, res: Response) => {
         acc[muscleGroup]!.push(exercise);
         return acc;
       },
-      {} as Record<string, typeof exercises>
+      {} as Record<string, Exercise[]>
     );
 
     res.json({
