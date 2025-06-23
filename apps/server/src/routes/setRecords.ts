@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, SetRecord } from '@prisma/client';
 import { Response, Router } from 'express';
 import { z } from 'zod';
 import { authenticate, AuthRequest } from '../middleware/auth';
@@ -7,7 +7,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // GET /api/v1/set-records
-router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
 
@@ -64,7 +64,7 @@ const setRecordSchema = z.object({
 });
 
 // POST /api/v1/set-records
-router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
     const data = setRecordSchema.parse(req.body);
@@ -123,7 +123,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
       });
 
       const completedSets = allSetRecords.filter(
-        set => set.actualWeight !== null && set.actualReps !== null
+        (set: SetRecord) => set.actualWeight !== null && set.actualReps !== null
       );
 
       if (completedSets.length === allSetRecords.length) {
@@ -134,7 +134,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
       }
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: { setRecord },
     });
@@ -147,7 +147,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
     }
 
     console.error('Set record error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { message: 'Internal server error' },
     });
@@ -155,7 +155,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response): Promise<
 });
 
 // PATCH /api/v1/set-records/:id
-router.patch('/:id', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+router.patch('/:id', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
     const setRecordId = req.params.id;
@@ -215,7 +215,7 @@ router.patch('/:id', authenticate, async (req: AuthRequest, res: Response): Prom
       });
 
       const completedSets = allSetRecords.filter(
-        set =>
+        (set: SetRecord) =>
           (set.id === setRecordId &&
             updatedSetRecord.actualWeight !== null &&
             updatedSetRecord.actualReps !== null) ||

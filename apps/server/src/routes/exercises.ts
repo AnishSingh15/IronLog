@@ -6,7 +6,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // GET /api/v1/exercises
-router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/', authenticate, async (_req: AuthRequest, res: Response) => {
   try {
     const exercises = await prisma.exercise.findMany({
       orderBy: [{ muscleGroup: 'asc' }, { name: 'asc' }],
@@ -14,11 +14,12 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response): Promise<v
 
     // Group exercises by muscle group
     const exercisesByMuscleGroup = exercises.reduce(
-      (acc, exercise) => {
-        if (!acc[exercise.muscleGroup]) {
-          acc[exercise.muscleGroup] = [];
+      (acc: Record<string, typeof exercises>, exercise) => {
+        const muscleGroup = exercise.muscleGroup;
+        if (!acc[muscleGroup]) {
+          acc[muscleGroup] = [];
         }
-        acc[exercise.muscleGroup].push(exercise);
+        acc[muscleGroup]!.push(exercise);
         return acc;
       },
       {} as Record<string, typeof exercises>

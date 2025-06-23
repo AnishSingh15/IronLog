@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Exercise } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -299,7 +299,7 @@ export class WorkoutService {
     });
 
     // Create set records for each exercise
-    const setRecordsData = exercises.flatMap(exercise => {
+    const setRecordsData = exercises.flatMap((exercise: Exercise) => {
       const numberOfSets = customSets?.[exercise.id] || exercise.defaultSets;
       return Array.from({ length: numberOfSets }, (_, setIndex) => ({
         workoutDayId: createdWorkoutDay.id,

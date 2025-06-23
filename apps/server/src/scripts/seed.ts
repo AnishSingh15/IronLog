@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Exercise } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -94,7 +94,7 @@ async function main() {
 
     const selectedExercises: typeof allExercises = [];
     for (const group of split.groups) {
-      const groupEx = allExercises.filter(e => e.muscleGroup === group);
+      const groupEx = allExercises.filter((e: Exercise) => e.muscleGroup === group);
       const chosen = groupEx.slice(0, split.maxPerGroup);
       selectedExercises.push(...chosen);
     }

@@ -2,6 +2,7 @@ import { Response, Router } from 'express';
 import { z } from 'zod';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { workoutService } from '../services/workout.service';
+import { SetRecord } from '@prisma/client';
 
 const router = Router();
 
@@ -31,7 +32,7 @@ router.post('/start', async (req: AuthRequest, res: Response) => {
     // Calculate completion percentage
     const totalSets = workoutDay.setRecords.length;
     const completedSets = workoutDay.setRecords.filter(
-      set => set.actualWeight !== null && set.actualReps !== null
+      (set: SetRecord) => set.actualWeight !== null && set.actualReps !== null
     ).length;
     const completionPercentage = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
@@ -76,7 +77,7 @@ router.get('/today', async (req: AuthRequest, res: Response) => {
     // Calculate completion percentage
     const totalSets = workoutDay.setRecords.length;
     const completedSets = workoutDay.setRecords.filter(
-      set => set.actualWeight !== null && set.actualReps !== null
+      (set: SetRecord) => set.actualWeight !== null && set.actualReps !== null
     ).length;
     const completionPercentage = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
@@ -144,10 +145,10 @@ router.get('/history', async (req: AuthRequest, res: Response) => {
     );
 
     // Calculate completion percentage for each workout
-    const workoutsWithCompletion = workoutHistory.map(workout => {
+    const workoutsWithCompletion = workoutHistory.map((workout: any) => {
       const totalSets = workout.setRecords.length;
       const completedSets = workout.setRecords.filter(
-        set => set.actualWeight !== null && set.actualReps !== null
+        (set: SetRecord) => set.actualWeight !== null && set.actualReps !== null
       ).length;
       const completionPercentage =
         totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
@@ -215,7 +216,7 @@ router.post('/custom', async (req: AuthRequest, res: Response) => {
     // Calculate completion percentage
     const totalSets = workoutDay.setRecords.length;
     const completedSets = workoutDay.setRecords.filter(
-      set => set.actualWeight !== null && set.actualReps !== null
+      (set: SetRecord) => set.actualWeight !== null && set.actualReps !== null
     ).length;
     const completionPercentage = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
