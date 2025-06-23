@@ -81,7 +81,7 @@ class ApiClient {
     console.log('� Attempting login...');
     const response = await this.client.post('/auth/login', data);
     console.log('✅ Login successful');
-    
+
     const { accessToken } = response.data.data;
 
     Cookies.set('accessToken', accessToken, {
