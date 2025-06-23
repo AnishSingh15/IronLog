@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="#1f2937"/>
+  
+  <!-- Dumbbell Icon -->
+  <g transform="translate(128, 192)">
+    <!-- Left weight -->
+    <rect x="0" y="32" width="48" height="96" rx="12" fill="#f59e0b"/>
+    <rect x="12" y="16" width="24" height="128" rx="6" fill="#f97316"/>
+    
+    <!-- Bar -->
+    <rect x="48" y="72" width="160" height="16" rx="8" fill="#6b7280"/>
+    
+    <!-- Right weight -->
+    <rect x="208" y="32" width="48" height="96" rx="12" fill="#f59e0b"/>
+    <rect x="220" y="16" width="24" height="128" rx="6" fill="#f97316"/>
+  </g>
+  
+  <!-- App Name -->
+  <text x="256" y="380" text-anchor="middle" fill="#f3f4f6" font-family="system-ui, -apple-system" font-size="48" font-weight="bold">IronLog</text>
+  
+  <!-- Tagline -->
+  <text x="256" y="420" text-anchor="middle" fill="#9ca3af" font-family="system-ui, -apple-system" font-size="24">Track • Train • Transform</text>
+</svg>

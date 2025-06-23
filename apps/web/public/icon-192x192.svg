@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" rx="24" fill="#1f2937"/>
+  
+  <!-- Dumbbell Icon -->
+  <g transform="translate(48, 72)">
+    <!-- Left weight -->
+    <rect x="0" y="8" width="16" height="32" rx="4" fill="#f59e0b"/>
+    <rect x="4" y="4" width="8" height="40" rx="2" fill="#f97316"/>
+    
+    <!-- Bar -->
+    <rect x="16" y="18" width="64" height="4" rx="2" fill="#6b7280"/>
+    
+    <!-- Right weight -->
+    <rect x="80" y="8" width="16" height="32" rx="4" fill="#f59e0b"/>
+    <rect x="84" y="4" width="8" height="40" rx="2" fill="#f97316"/>
+  </g>
+  
+  <!-- App Name -->
+  <text x="96" y="140" text-anchor="middle" fill="#f3f4f6" font-family="system-ui, -apple-system" font-size="18" font-weight="bold">IronLog</text>
+</svg>

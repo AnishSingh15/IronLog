@@ -45,7 +45,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm prisma generate
+        run: cd apps/server && pnpm prisma generate
 
       - name: Lint
         run: pnpm lint
@@ -101,7 +101,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm prisma generate
+        run: cd apps/server && pnpm prisma generate
 
       - name: Setup test database
         run: |
@@ -161,7 +161,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm prisma generate
+        run: cd apps/server && pnpm prisma generate
 
       - name: Build
         run: pnpm build
@@ -211,7 +211,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm prisma generate
+        run: cd apps/server && pnpm prisma generate
 
       - name: Install Playwright browsers
         run: pnpm --filter web exec playwright install --with-deps
