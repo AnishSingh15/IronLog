@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Render deployment script for IronLog - Standalone approach
+# Render deployment script for IronLog - Complete isolation approach
 echo "🚀 Starting Render deployment for IronLog..."
 
 # Print current directory for debugging
@@ -14,85 +14,81 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
-# Remove ALL potential workspace/lock files
-echo "🧹 Cleaning up workspace and lock files..."
-rm -rf node_modules
-rm -f package-lock.json
-rm -f pnpm-lock.yaml
-rm -f yarn.lock
-rm -f .pnpmfile.cjs
+# Create a completely isolated build directory
+echo "🏗️ Creating isolated build environment..."
+BUILD_DIR="/tmp/ironlog-build"
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
 
-# Check for any workspace configuration in parent directories
-echo "🔍 Debugging workspace detection..."
-echo "Current directory: $(pwd)"
-echo "Parent directories content:"
-ls -la ../
-ls -la ../../
-echo "Environment variables:"
-env | grep -i workspace || echo "No workspace env vars found"
-env | grep -i pnpm || echo "No pnpm env vars found"
+# Copy only the server files we need
+echo "� Copying server files to isolated directory..."
+cp package.json "$BUILD_DIR/"
+cp -r src "$BUILD_DIR/"
+cp -r prisma "$BUILD_DIR/"
+cp tsconfig.json "$BUILD_DIR/" 2>/dev/null || echo "No tsconfig.json found"
+cp .env "$BUILD_DIR/" 2>/dev/null || echo "No .env found"
 
-# Set environment variables to disable workspace detection
-export NPM_CONFIG_WORKSPACES=false
-export NPM_CONFIG_WORKSPACE_ROOT=false
-export NPM_CONFIG_WORKSPACE=false
-unset PNPM_HOME
-unset PNPM_VERSION
-unset npm_config_workspace
-unset npm_config_workspaces
+# Change to the isolated directory
+cd "$BUILD_DIR"
 
-# Create isolated npm configuration
-echo "📝 Creating isolated npm configuration..."
+echo "📍 Now in isolated directory: $(pwd)"
+echo "📂 Isolated directory contents:"
+ls -la
+
+# Create a clean npm environment
+echo "📝 Creating clean npm configuration..."
 cat > .npmrc << EOF
-workspaces=false
-workspace=false
 package-lock=false
 save-exact=true
 engine-strict=true
 legacy-peer-deps=true
 fund=false
 audit=false
-prefer-offline=false
 EOF
 
-# Also create a package-lock.json stub to prevent workspace detection
-echo '{"lockfileVersion": 1}' > package-lock.json
-
-# Install dependencies with maximum isolation
-echo "📦 Installing dependencies (trying yarn as fallback)..."
-if NPM_CONFIG_WORKSPACES=false NPM_CONFIG_WORKSPACE=false npm install --legacy-peer-deps --no-fund --no-audit; then
-    echo "✅ npm install succeeded"
-else
-    echo "⚠️ npm install failed, trying yarn..."
-    # Try with yarn as a fallback
-    npm install -g yarn
-    yarn install --no-lockfile
-fi
+# Install dependencies in the isolated environment
+echo "📦 Installing dependencies in isolated environment..."
+npm install --legacy-peer-deps
 
 # Check if installation was successful
 if [ $? -ne 0 ]; then
-    echo "❌ npm install failed"
+    echo "❌ npm install failed even in isolated environment"
     exit 1
 fi
 
+echo "✅ npm install succeeded in isolated environment"
+
 # Generate Prisma client
 echo "🔄 Generating Prisma client..."
-./node_modules/.bin/prisma generate
+npx prisma generate
 
 # Run database migrations
 echo "🗄️ Running database migrations..."
-./node_modules/.bin/prisma migrate deploy
+npx prisma migrate deploy
 
 # Build the TypeScript application
 echo "🔨 Building TypeScript application..."
-./node_modules/.bin/prisma generate && ./node_modules/.bin/tsc
+npx tsc
+
+# Check if build was successful
+if [ ! -d "dist" ]; then
+    echo "❌ TypeScript build failed - no dist directory created"
+    exit 1
+fi
 
 # Seed the database (optional, only for initial deployment)
 if [ "$SEED_DATABASE" = "true" ]; then
   echo "🌱 Seeding database..."
-  ./node_modules/.bin/prisma db seed
+  npx prisma db seed
 fi
+
+# Copy the built files back to the original location
+echo "📋 Copying built files back to original location..."
+cp -r dist/* /opt/render/project/src/apps/server/dist/ 2>/dev/null || mkdir -p /opt/render/project/src/apps/server/dist && cp -r dist/* /opt/render/project/src/apps/server/dist/
+cp -r node_modules /opt/render/project/src/apps/server/
 
 echo "✅ Build completed successfully!"
 echo "📂 Final build contents:"
 ls -la dist/
+echo "📂 Original location contents:"
+ls -la /opt/render/project/src/apps/server/dist/ || echo "Could not access original dist directory"
