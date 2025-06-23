@@ -8,34 +8,49 @@ The backend database is not properly migrated or configured on Render.
 
 ## 🛠️ **IMMEDIATE FIXES NEEDED**
 
-### **Step 1: Check Render Backend Logs**
+### **Step 1: Fix Database Using Build Command (Free Tier)**
+
+Since Render free tier doesn't support Shell access, we'll fix the database through the build process:
+
+**Option A: Update Build Command (Recommended)**
 1. Go to [Render Dashboard](https://dashboard.render.com/)
-2. Find your **ironlog** backend service
-3. Click on it → **Logs** tab
-4. Look for database connection errors or Prisma errors
-
-### **Step 2: Fix Database Connection**
-
-**Option A: Use Render Shell (Recommended)**
-1. In your Render backend service, go to **Shell** tab
-2. Run these commands:
+2. Find your **ironlog** backend service → **Settings** → **Build & Deploy**
+3. Update **Build Command** to:
    ```bash
-   # Generate Prisma client
-   npx prisma generate
-   
-   # Deploy database migrations
-   npx prisma migrate deploy
-   
-   # Seed the database with initial data
-   npx prisma db seed
+   npm install && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run build
+   ```
+4. **Save Changes**
+5. Go to **Manual Deploy** → **Deploy Latest Commit**
+
+**Option B: Use Custom Build Script**
+1. Update **Build Command** to:
+   ```bash
+   ./render-build.sh
+   ```
+2. **Save Changes** and **Deploy Latest Commit**
+
+### **Step 2: Set Database Seeding (Important)**
+
+Add this environment variable to ensure initial data is seeded:
+1. **Settings** → **Environment Variables**
+2. Add:
+   ```
+   SEED_DATABASE=true
+   ```
+3. **Save**
+
+### **Step 3: Monitor Deployment Logs**
+
+1. After triggering the deploy, go to **Logs** tab
+2. Watch for these success messages:
+   ```
+   🔄 Generating Prisma client...
+   🗄️ Running database migrations...
+   🌱 Seeding database...
+   🔨 Building TypeScript application...
    ```
 
-**Option B: Update Build Command**
-1. Go to **Settings** → **Build & Deploy**  
-2. Update **Build Command** to:
-   ```bash
-   npm install && npx prisma generate && npx prisma migrate deploy && npm run build
-   ```
+### **Step 4: ~~Check Render Backend Logs~~ (Not available in free tier)**
 
 ### **Step 3: Verify Environment Variables**
 
@@ -53,20 +68,19 @@ JWT_REFRESH_SECRET=your-super-secure-refresh-secret-at-least-32-characters
 NODE_ENV=production
 PORT=3001
 
+# Database seeding (for initial setup)
+SEED_DATABASE=true
+
 # CORS (optional, for explicit frontend URL)
 FRONTEND_URL=https://ironlog-web.vercel.app
 ```
 
-### **Step 4: Test Database Connection**
+### **Step 4: Test Database Connection (Free Tier Alternative)**
 
-In the Render Shell, test if the database is accessible:
-```bash
-# Test database connection
-npx prisma db pull
-
-# Check if tables exist
-npx prisma studio --browser none --port 5000
-```
+Since Shell access isn't available, test the database by checking:
+1. **Deployment logs** for successful migration messages
+2. **Application logs** for database connection errors
+3. **API endpoints** directly with curl
 
 ## 🔍 **Common Database Issues**
 
