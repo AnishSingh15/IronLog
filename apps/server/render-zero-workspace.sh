@@ -61,10 +61,10 @@ cat > "$BUILD_DIR/package.json" << 'EOF'
   "name": "ironlog-server",
   "version": "1.0.0",
   "description": "IronLog Express API Server",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/src/index.js"
+    "start": "node dist/index.js"
   },
   "prisma": {
     "seed": "npx tsx src/scripts/seed.ts"
@@ -144,11 +144,11 @@ echo "🌱 Seeding database..."
 npx prisma db seed || echo "⚠️ Seeding failed or already done, continuing..."
 
 # Step 6: Verify build
-if [ -f "dist/src/index.js" ]; then
-    echo "✅ Build successful! dist/src/index.js created"
-    ls -la dist/src/
+if [ -f "dist/index.js" ]; then
+    echo "✅ Build successful! dist/index.js created"
+    ls -la dist/
 else
-    echo "❌ Build failed! dist/src/index.js not found"
+    echo "❌ Build failed! dist/index.js not found"
     echo "Build directory contents:"
     ls -la
     echo "Dist directory contents:"
@@ -169,4 +169,4 @@ rm -rf "$BUILD_DIR"
 
 echo "🎉 Zero-Workspace Build completed successfully!"
 echo "📝 Production files are ready!"
-ls -la dist/src/
+ls -la dist/

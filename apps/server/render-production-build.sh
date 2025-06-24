@@ -27,6 +27,7 @@ cat > "$BUILD_DIR/tsconfig.json" << 'EOF'
     "module": "commonjs",
     "lib": ["ES2022"],
     "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -61,10 +62,10 @@ cat > "$BUILD_DIR/package.json" << 'EOF'
   "name": "ironlog-server",
   "version": "1.0.0",
   "description": "IronLog Express API Server",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/src/index.js"
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@prisma/client": "6.10.1",
@@ -143,11 +144,11 @@ echo "Checking for any .js files:"
 find . -name "*.js" -type f | head -10 || echo "No .js files found"
 
 # Step 6: Verify build
-if [ -f "dist/src/index.js" ]; then
-    echo "✅ Build successful! dist/src/index.js created"
-    ls -la dist/src/
+if [ -f "dist/index.js" ]; then
+    echo "✅ Build successful! dist/index.js created"
+    ls -la dist/
 else
-    echo "❌ Build failed! dist/src/index.js not found"
+    echo "❌ Build failed! dist/index.js not found"
     exit 1
 fi
 
@@ -164,4 +165,4 @@ rm -rf "$BUILD_DIR"
 
 echo "🎉 Production Build completed successfully!"
 echo "📝 Server is ready to start!"
-ls -la dist/src/
+ls -la dist/
