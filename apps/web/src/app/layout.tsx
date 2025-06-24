@@ -4,6 +4,7 @@ import { PWANotifications } from '@/components/PWANotifications';
 import { PWAOfflineIndicator } from '@/components/PWAOfflineIndicator';
 import { PWAStatusChecker } from '@/components/PWAStatusChecker';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -82,6 +83,7 @@ export default function RootLayout({
           <PWANotifications />
           <PWAStatusChecker />
           <PWAOfflineIndicator />
+          <Analytics />
         </Providers>
       </body>
     </html>

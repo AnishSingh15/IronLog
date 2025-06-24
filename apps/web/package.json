@@ -24,6 +24,7 @@
     "@mui/material": "^6.1.9",
     "@mui/system": "^6.1.9",
     "@mui/x-date-pickers": "^7.19.0",
+    "@vercel/analytics": "^1.5.0",
     "axios": "^1.10.0",
     "clsx": "^2.0.0",
     "date-fns": "^4.1.0",

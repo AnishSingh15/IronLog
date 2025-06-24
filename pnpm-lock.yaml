@@ -162,6 +162,9 @@ importers:
       '@mui/x-date-pickers':
         specifier: ^7.19.0
         version: 7.29.4(@emotion/react@11.14.0)(@emotion/styled@11.14.0)(@mui/material@6.4.12)(@mui/system@6.4.12)(@types/react@19.1.8)(date-fns@4.1.0)(react-dom@19.1.0)(react@19.1.0)
+      '@vercel/analytics':
+        specifier: ^1.5.0
+        version: 1.5.0(next@15.3.4)(react@19.1.0)
       axios:
         specifier: ^1.10.0
         version: 1.10.0
@@ -3780,6 +3783,36 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@vercel/analytics@1.5.0(next@15.3.4)(react@19.1.0):
+    resolution: {integrity: sha512-MYsBzfPki4gthY5HnYN7jgInhAZ7Ac1cYDoRWFomwGHWEX7odTEzbtg9kf/QSo7XEsEAqlQugA6gJ2WS2DEa3g==}
+    peerDependencies:
+      '@remix-run/react': ^2
+      '@sveltejs/kit': ^1 || ^2
+      next: '>= 13'
+      react: ^18 || ^19 || ^19.0.0-rc
+      svelte: '>= 4'
+      vue: ^3
+      vue-router: ^4
+    peerDependenciesMeta:
+      '@remix-run/react':
+        optional: true
+      '@sveltejs/kit':
+        optional: true
+      next:
+        optional: true
+      react:
+        optional: true
+      svelte:
+        optional: true
+      vue:
+        optional: true
+      vue-router:
+        optional: true
+    dependencies:
+      next: 15.3.4(@playwright/test@1.53.1)(react-dom@19.1.0)(react@19.1.0)
+      react: 19.1.0
+    dev: false
 
   /@vitest/coverage-v8@1.6.1(vitest@1.6.1):
     resolution: {integrity: sha512-6YeRZwuO4oTGKxD3bijok756oktHSIm3eczVVzNe3scqzuhLwltIF3S9ZL/vwOVIpURmU6SnZhziXXAfw8/Qlw==}
