@@ -124,7 +124,17 @@ if [ ! -f "node_modules/.bin/tsc" ]; then
     echo "❌ TypeScript compiler not found, installing globally..."
     npm install -g typescript
 fi
-npx tsc
+
+echo "🛠️ Running TypeScript compilation..."
+npx tsc --verbose
+
+echo "📂 Checking compilation results..."
+echo "Current directory contents:"
+ls -la
+echo "Checking if dist directory exists:"
+ls -la dist/ || echo "No dist directory found"
+echo "Checking for any .js files:"
+find . -name "*.js" -type f | head -10 || echo "No .js files found"
 
 echo "🌱 Seeding database..."
 npx prisma db seed || echo "⚠️ Seeding failed or already done, continuing..."

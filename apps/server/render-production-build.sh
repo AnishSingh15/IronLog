@@ -120,7 +120,24 @@ if [ ! -f "node_modules/.bin/tsc" ]; then
     echo "❌ TypeScript compiler not found, installing globally..."
     npm install -g typescript
 fi
-npx tsc
+
+echo "🛠️ Running TypeScript compilation..."
+echo "📋 TypeScript configuration check:"
+cat tsconfig.json
+echo ""
+echo "🔍 Checking TypeScript can find source files:"
+npx tsc --listFiles | head -5 || echo "Failed to list files"
+echo ""
+echo "▶️ Running TypeScript compilation with verbose output:"
+npx tsc --verbose
+
+echo "📂 Checking compilation results..."
+echo "Current directory contents:"
+ls -la
+echo "Checking if dist directory exists:"
+ls -la dist/ || echo "No dist directory found"
+echo "Checking for any .js files:"
+find . -name "*.js" -type f | head -10 || echo "No .js files found"
 
 # Step 6: Verify build
 if [ -f "dist/src/index.js" ]; then
