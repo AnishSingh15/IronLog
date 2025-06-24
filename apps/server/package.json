@@ -4,7 +4,8 @@
   "description": "IronLog Express API Server",
   "main": "dist/src/index.js",
   "scripts": {
-    "build": "prisma generate && tsc",
+    "build": "prisma generate && tsc --project tsconfig.prod.json",
+    "build:dev": "prisma generate && tsc",
     "postinstall": "prisma generate",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/src/index.js",

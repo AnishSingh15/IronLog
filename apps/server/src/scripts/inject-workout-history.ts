@@ -179,6 +179,11 @@ async function injectWorkoutHistoryViaAPI() {
         for (let setIndex = 0; setIndex < exercise.sets.length; setIndex++) {
           const set = exercise.sets[setIndex];
           
+          if (!set || set.w === undefined || set.r === undefined) {
+            console.log(`  ⚠️ Skipping invalid set ${setIndex + 1} for ${exercise.name}`);
+            continue;
+          }
+          
           const createSetResponse = await fetch(`${API_BASE}/set-records`, {
             method: 'POST',
             headers: {
