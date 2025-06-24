@@ -27,5 +27,5 @@
     "types": ["node", "vitest/globals"]
   },
   "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist", "src/scripts"]
+  "exclude": ["node_modules", "dist", "src/scripts", "scripts"]
 }
