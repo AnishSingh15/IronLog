@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Script to inject workout data via API endpoints
+// Script to inject complete workout history via API endpoints
 import fetch from 'node-fetch';
 
 const API_BASE = 'https://ironlog.onrender.com/api/v1';
@@ -215,45 +215,9 @@ const workoutHistory = [
   },
 ];
 
-function getMuscleGroup(exerciseName: string, description: string): string {
-  const name = exerciseName.toLowerCase();
-  const desc = description.toLowerCase();
-
-  if (
-    name.includes('chest') ||
-    (name.includes('press') && (desc.includes('chest') || name.includes('incline')))
-  )
-    return 'Chest';
-  if (name.includes('tricep') || desc.includes('tricep')) return 'Triceps';
-  if (
-    name.includes('back') ||
-    name.includes('row') ||
-    name.includes('lat') ||
-    desc.includes('pull')
-  )
-    return 'Back';
-  if (name.includes('bicep') || (name.includes('curl') && desc.includes('bicep'))) return 'Biceps';
-  if (
-    name.includes('squat') ||
-    name.includes('leg') ||
-    name.includes('hamstring') ||
-    desc.includes('quad')
-  )
-    return 'Legs';
-  if (
-    name.includes('shoulder') ||
-    name.includes('lateral') ||
-    name.includes('pec deck') ||
-    desc.includes('delt')
-  )
-    return 'Shoulders';
-
-  return 'Other';
-}
-
-async function injectWorkoutsViaAPI() {
+async function injectWorkoutHistoryViaAPI() {
   try {
-    console.log('🚀 Starting API-based workout injection...');
+    console.log('🚀 Starting complete workout history injection...');
 
     // 1. Login to get JWT token
     console.log('🔐 Logging in...');
@@ -269,7 +233,7 @@ async function injectWorkoutsViaAPI() {
     });
 
     if (!loginResponse.ok) {
-      const errorData = await loginResponse.json();
+      const errorData = (await loginResponse.json()) as any;
       console.log('❌ Login failed:', errorData);
       return;
     }
@@ -278,65 +242,166 @@ async function injectWorkoutsViaAPI() {
     const token = loginData.data.accessToken;
     console.log('✅ Login successful');
 
-    // 2. Create exercise templates first
-    console.log('💪 Creating exercise templates...');
-    const uniqueExercises = new Map();
+    // 2. Get all exercises to map names to IDs
+    console.log('📋 Fetching exercise list...');
+    const exercisesResponse = await fetch(`${API_BASE}/exercises`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!exercisesResponse.ok) {
+      console.log('❌ Failed to fetch exercises');
+      return;
+    }
+
+    const exercisesData = (await exercisesResponse.json()) as any;
+    const exercises = exercisesData.data.exercises;
+
+    // Create exercise name to ID mapping
+    const exerciseMap = new Map();
+    exercises.forEach((exercise: any) => {
+      exerciseMap.set(exercise.name, exercise.id);
+    });
+
+    console.log(`✅ Found ${exercises.length} exercises`);
+
+    // 3. Check existing workout days to avoid duplicates
+    console.log('📅 Checking existing workout days...');
+    const workoutDaysResponse = await fetch(`${API_BASE}/workouts/history`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const existingDates = new Set();
+    if (workoutDaysResponse.ok) {
+      const workoutDaysData = (await workoutDaysResponse.json()) as any;
+      const workoutDays = workoutDaysData.data || [];
+      workoutDays.forEach((day: any) => {
+        existingDates.add(day.date.split('T')[0]); // Extract date part
+      });
+      console.log(`✅ Found ${existingDates.size} existing workout days`);
+    }
+
+    // 4. Create workout days and set records
+    console.log('💪 Creating workout history...');
 
     for (const workout of workoutHistory) {
+      console.log(`\n📅 Processing workout: ${workout.date} - ${workout.split}`);
+
+      // Skip if workout day already exists
+      if (existingDates.has(workout.date)) {
+        console.log(`⏭️ Skipping ${workout.date} - already exists`);
+        continue;
+      }
+
+      // Create workout day
+      const createWorkoutDayResponse = await fetch(`${API_BASE}/workouts/workout-day`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          date: workout.date + 'T05:00:00.000Z', // 5 AM UTC
+          completed: true,
+        }),
+      });
+
+      if (!createWorkoutDayResponse.ok) {
+        const errorText = await createWorkoutDayResponse.text();
+        console.log(
+          `❌ Failed to create workout day for ${workout.date}:`,
+          createWorkoutDayResponse.status,
+          errorText
+        );
+        continue;
+      }
+
+      const workoutDayData = (await createWorkoutDayResponse.json()) as any;
+      const workoutDayId = workoutDayData.data.workoutDay.id;
+      console.log(`✅ Created workout day: ${workoutDayId}`);
+
+      // Create set records for each exercise
       for (const exercise of workout.exercises) {
-        const muscleGroup = getMuscleGroup(exercise.name, exercise.description);
-        uniqueExercises.set(exercise.name, {
-          name: exercise.name,
-          muscleGroup,
-          defaultSets: 3,
-          defaultReps: 10,
-        });
-      }
-    }
+        const exerciseId = exerciseMap.get(exercise.name);
 
-    // Create exercises via API
-    for (const [name, exerciseData] of uniqueExercises) {
-      try {
-        const createExerciseResponse = await fetch(`${API_BASE}/exercises`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(exerciseData),
-        });
-
-        if (createExerciseResponse.ok) {
-          console.log(`✅ Created exercise: ${name}`);
-        } else {
-          console.log(`⚠️ Exercise may already exist: ${name}`);
+        if (!exerciseId) {
+          console.log(`⚠️ Exercise not found: ${exercise.name}`);
+          continue;
         }
-      } catch (error) {
-        console.log(`⚠️ Error creating exercise ${name}:`, error);
+
+        // Create sets for this exercise
+        for (let setIndex = 0; setIndex < exercise.sets.length; setIndex++) {
+          const set = exercise.sets[setIndex];
+
+          if (!set || set.w === undefined || set.r === undefined) {
+            console.log(`  ⚠️ Skipping invalid set ${setIndex + 1} for ${exercise.name}`);
+            continue;
+          }
+
+          const createSetResponse = await fetch(`${API_BASE}/set-records`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              workoutDayId: workoutDayId,
+              exerciseId: exerciseId,
+              setIndex: setIndex,
+              plannedWeight: set.w,
+              plannedReps: set.r,
+              actualWeight: set.w,
+              actualReps: set.r,
+              secondsRest: 120,
+            }),
+          });
+
+          if (createSetResponse.ok) {
+            console.log(
+              `  ✅ Created set ${setIndex + 1} for ${exercise.name}: ${formatWeight(set.w)} x ${set.r} reps`
+            );
+          } else {
+            const errorText = await createSetResponse.text();
+            console.log(
+              `  ❌ Failed to create set ${setIndex + 1} for ${exercise.name}: ${createSetResponse.status} ${errorText}`
+            );
+          }
+        }
       }
     }
 
-    console.log('🎉 Workout injection completed via API!');
-    console.log(`📊 Summary:`);
-    console.log(`   - Exercise templates created: ${uniqueExercises.size}`);
-    console.log(`   - Ready for workout creation via frontend`);
+    console.log('\n🎉 Workout history injection completed!');
+    console.log(`📊 Final Summary:`);
+    console.log(`   - User: anish15may@gmail.com`);
+    console.log(`   - Exercise templates: ${exerciseMap.size}`);
+    console.log(`   - Historical workouts: ${workoutHistory.length}`);
+
+    const totalSets = workoutHistory.reduce(
+      (total, workout) =>
+        total + workout.exercises.reduce((sum, exercise) => sum + exercise.sets.length, 0),
+      0
+    );
+    console.log(`   - Total sets: ${totalSets}`);
   } catch (error) {
-    console.error('❌ Error in API injection:', error);
+    console.error('❌ Error in workout history injection:', error);
     throw error;
   }
 }
 
 // Run the script
 if (require.main === module) {
-  injectWorkoutsViaAPI()
+  injectWorkoutHistoryViaAPI()
     .then(() => {
-      console.log('✅ API injection completed successfully');
+      console.log('✅ Workout history injection completed successfully');
       process.exit(0);
     })
     .catch(error => {
-      console.error('❌ API injection failed:', error);
+      console.error('❌ Workout history injection failed:', error);
       process.exit(1);
     });
 }
 
-export default injectWorkoutsViaAPI;
+export default injectWorkoutHistoryViaAPI;
