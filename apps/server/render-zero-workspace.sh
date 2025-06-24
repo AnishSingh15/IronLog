@@ -71,8 +71,11 @@ EOF
 # Step 5: Change to isolated directory and run build
 cd "$BUILD_DIR"
 
+# Ensure devDependencies are installed
+export NODE_ENV=development
+
 echo "📥 Installing dependencies in isolated environment..."
-npm install --legacy-peer-deps
+npm install --legacy-peer-deps --include=dev
 
 echo "🔄 Generating Prisma client..."
 npx prisma generate
@@ -81,6 +84,11 @@ echo "🗄️ Running database migration..."
 npx prisma migrate deploy
 
 echo "🔨 Building TypeScript..."
+# Verify TypeScript is available
+if [ ! -f "node_modules/.bin/tsc" ]; then
+    echo "❌ TypeScript compiler not found, installing globally..."
+    npm install -g typescript
+fi
 npx tsc
 
 echo "🌱 Seeding database..."
