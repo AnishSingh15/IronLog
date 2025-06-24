@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
 // Script to inject complete workout history via API endpoints
-import fetch from 'node-fetch';
+// Using built-in fetch (Node 18+) instead of node-fetch
 
-const API_BASE = 'https://ironlog.onrender.com';
+// Import fetch types for Node.js 18+
+import { fetch } from 'undici';
+
+const API_BASE = 'https://ironlog.onrender.com/api/v1';
 
 // Helper function to convert pounds to kg and format display
 function formatWeight(lbs: number): string {
@@ -217,7 +220,7 @@ async function injectWorkoutHistoryViaAPI() {
 
     // 1. Login to get JWT token
     console.log('🔐 Logging in...');
-    const loginResponse = await fetch(`${API_BASE}/api/v1/auth/login`, {
+    const loginResponse = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -240,7 +243,7 @@ async function injectWorkoutHistoryViaAPI() {
 
     // 2. Get all exercises to map names to IDs
     console.log('📋 Fetching exercise list...');
-    const exercisesResponse = await fetch(`${API_BASE}/api/v1/exercises`, {
+    const exercisesResponse = await fetch(`${API_BASE}/exercises`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -264,7 +267,7 @@ async function injectWorkoutHistoryViaAPI() {
 
     // 3. Check existing workout days to avoid duplicates
     console.log('📅 Checking existing workout days...');
-    const workoutDaysResponse = await fetch(`${API_BASE}/workouts`, {
+    const workoutDaysResponse = await fetch(`${API_BASE}/workouts/history`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -296,7 +299,7 @@ async function injectWorkoutHistoryViaAPI() {
       const workoutDateTime = workout.date + 'T05:00:00.000Z';
       console.log(`📝 Creating workout day for: ${workoutDateTime}`);
 
-      const createWorkoutDayResponse = await fetch(`${API_BASE}/api/v1/workouts/workout-day`, {
+      const createWorkoutDayResponse = await fetch(`${API_BASE}/workouts/workout-day`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -335,7 +338,7 @@ async function injectWorkoutHistoryViaAPI() {
             continue;
           }
 
-          const createSetResponse = await fetch(`${API_BASE}/api/v1/set-records`, {
+          const createSetResponse = await fetch(`${API_BASE}/set-records`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
