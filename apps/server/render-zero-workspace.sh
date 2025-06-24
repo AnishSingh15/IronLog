@@ -126,7 +126,11 @@ if [ ! -f "node_modules/.bin/tsc" ]; then
 fi
 
 echo "🛠️ Running TypeScript compilation..."
-npx tsc --verbose
+echo "▶️ Checking source files to compile:"
+npx tsc --noEmit --listFiles | grep -v "node_modules" | head -10 || echo "No source files found"
+echo ""
+echo "🔨 Actual TypeScript compilation:"
+npx tsc
 
 echo "📂 Checking compilation results..."
 echo "Current directory contents:"

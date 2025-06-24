@@ -128,8 +128,11 @@ echo ""
 echo "🔍 Checking TypeScript can find source files:"
 npx tsc --listFiles | head -5 || echo "Failed to list files"
 echo ""
-echo "▶️ Running TypeScript compilation with verbose output:"
-npx tsc --verbose
+echo "▶️ Running TypeScript compilation:"
+npx tsc --noEmit --listFiles | grep -v "node_modules" | head -10 || echo "No source files found"
+echo ""
+echo "🔨 Actual TypeScript compilation:"
+npx tsc
 
 echo "📂 Checking compilation results..."
 echo "Current directory contents:"
