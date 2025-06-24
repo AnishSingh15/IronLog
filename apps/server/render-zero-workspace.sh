@@ -17,7 +17,42 @@ mkdir -p "$BUILD_DIR"
 echo "📋 Copying files to isolated build environment..."
 cp -r src "$BUILD_DIR/"
 cp -r prisma "$BUILD_DIR/"
-cp tsconfig.json "$BUILD_DIR/"
+
+# Create production tsconfig.json without test dependencies
+echo "📝 Creating production tsconfig.json..."
+cat > "$BUILD_DIR/tsconfig.json" << 'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": true,
+    "types": ["node"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
+EOF
 
 # Step 3: Create absolutely clean package.json with no workspace references
 echo "📦 Creating clean package.json in isolated environment..."
@@ -35,7 +70,7 @@ cat > "$BUILD_DIR/package.json" << 'EOF'
     "seed": "npx tsx src/scripts/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "5.7.1",
+    "@prisma/client": "6.10.1",
     "bcryptjs": "2.4.3",
     "cookie-parser": "1.4.6",
     "cors": "2.8.5",
@@ -53,7 +88,7 @@ cat > "$BUILD_DIR/package.json" << 'EOF'
     "@types/jsonwebtoken": "9.0.5",
     "@types/morgan": "1.9.9",
     "@types/node": "20.10.5",
-    "prisma": "5.7.1",
+    "prisma": "6.10.1",
     "tsx": "4.6.2",
     "typescript": "5.3.3"
   }
