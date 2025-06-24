@@ -1,12 +1,14 @@
 # 🔧 Render Workspace Protocol Fix
 
 ## 🚨 Issue
+
 ```
 npm error code EUNSUPPORTEDPROTOCOL
 npm error Unsupported URL Type "workspace:": workspace:*
 ```
 
 ## 🔍 Root Cause
+
 Render is trying to install dependencies from the root directory which contains pnpm workspace references that npm doesn't understand.
 
 ## ✅ **SOLUTION: Configure Root Directory**
@@ -24,8 +26,9 @@ Render is trying to install dependencies from the root directory which contains 
    ```
 
    **OR use the full command:**
+
    ```
-   Root Directory: apps/server  
+   Root Directory: apps/server
    Build Command: npm install && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run build
    Start Command: npm start
    ```
@@ -46,6 +49,7 @@ Render is trying to install dependencies from the root directory which contains 
 ### **Option B: If Root Directory doesn't work**
 
 Use Build Command:
+
 ```bash
 cd apps/server && npm install && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run build
 ```
@@ -57,8 +61,9 @@ Build Command: `cd apps/server && npm run render:build`
 ## ✅ **Success Verification**
 
 After the fix, the build should:
+
 1. ✅ Install dependencies without workspace errors
-2. ✅ Generate Prisma client successfully  
+2. ✅ Generate Prisma client successfully
 3. ✅ Run database migrations
 4. ✅ Seed the database
 5. ✅ Build the TypeScript application

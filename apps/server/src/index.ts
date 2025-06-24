@@ -22,7 +22,7 @@ app.use(
         ? [
             'https://ironlog-web.vercel.app',
             'https://ironlog-web-*.vercel.app', // For preview deployments
-            process.env.FRONTEND_URL || 'https://ironlog-web.vercel.app'
+            process.env.FRONTEND_URL || 'https://ironlog-web.vercel.app',
           ]
         : ['http://localhost:3000'],
     credentials: true,

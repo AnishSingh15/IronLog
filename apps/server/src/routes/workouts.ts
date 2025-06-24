@@ -1,4 +1,4 @@
-import { Exercise, SetRecord, WorkoutDay } from '@prisma/client';
+import { Exercise, PrismaClient, SetRecord, WorkoutDay } from '@prisma/client';
 import { Response, Router } from 'express';
 import { z } from 'zod';
 import { authenticate, AuthRequest } from '../middleware/auth';
@@ -12,6 +12,7 @@ type WorkoutWithSetRecords = WorkoutDay & {
 };
 
 const router = Router();
+const prisma = new PrismaClient();
 
 // Apply authentication to all routes
 router.use(authenticate);
@@ -244,6 +245,57 @@ router.post('/custom', async (req: AuthRequest, res: Response) => {
     }
 
     console.error('Error creating custom workout:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' },
+    });
+  }
+});
+
+// POST /api/v1/workouts/workout-day - Create a workout day manually
+router.post('/workout-day', async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { date, completed } = req.body;
+
+    if (!date) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Date is required' },
+      });
+    }
+
+    const workoutDate = new Date(date);
+
+    // Check if workout day already exists
+    const existingWorkoutDay = await prisma.workoutDay.findFirst({
+      where: {
+        userId,
+        date: workoutDate,
+      },
+    });
+
+    if (existingWorkoutDay) {
+      return res.status(409).json({
+        success: false,
+        error: { message: 'Workout day already exists for this date' },
+      });
+    }
+
+    const workoutDay = await prisma.workoutDay.create({
+      data: {
+        userId,
+        date: workoutDate,
+        completed: completed || false,
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: { workoutDay },
+    });
+  } catch (error) {
+    console.error('Create workout day error:', error);
     return res.status(500).json({
       success: false,
       error: { message: 'Internal server error' },

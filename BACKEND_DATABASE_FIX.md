@@ -1,9 +1,11 @@
 # 🔧 Backend Database Fix Guide
 
 ## 🚨 Current Issue
+
 The frontend is now successfully connecting to the backend, but the backend is returning **500 Internal Server Error** when trying to register users.
 
 ## 🔍 Root Cause
+
 The backend database is not properly migrated or configured on Render.
 
 ## 🛠️ **IMMEDIATE FIXES NEEDED**
@@ -13,6 +15,7 @@ The backend database is not properly migrated or configured on Render.
 Since Render free tier doesn't support Shell access, we'll fix the database through the build process:
 
 **Option A: Update Build Command (Recommended)**
+
 1. Go to [Render Dashboard](https://dashboard.render.com/)
 2. Find your **ironlog** backend service → **Settings** → **Build & Deploy**
 3. Update **Build Command** to:
@@ -23,6 +26,7 @@ Since Render free tier doesn't support Shell access, we'll fix the database thro
 5. Go to **Manual Deploy** → **Deploy Latest Commit**
 
 **Option B: Use Custom Build Script**
+
 1. Update **Build Command** to:
    ```bash
    ./render-build.sh
@@ -32,6 +36,7 @@ Since Render free tier doesn't support Shell access, we'll fix the database thro
 ### **Step 2: Set Database Seeding (Important)**
 
 Add this environment variable to ensure initial data is seeded:
+
 1. **Settings** → **Environment Variables**
 2. Add:
    ```
@@ -78,6 +83,7 @@ FRONTEND_URL=https://ironlog-web.vercel.app
 ### **Step 4: Test Database Connection (Free Tier Alternative)**
 
 Since Shell access isn't available, test the database by checking:
+
 1. **Deployment logs** for successful migration messages
 2. **Application logs** for database connection errors
 3. **API endpoints** directly with curl
@@ -85,27 +91,35 @@ Since Shell access isn't available, test the database by checking:
 ## 🔍 **Common Database Issues**
 
 ### **Issue 1: Prisma Client Not Generated**
+
 ```bash
 Error: Cannot find module '@prisma/client'
 ```
+
 **Fix**: Run `npx prisma generate`
 
 ### **Issue 2: Database Tables Don't Exist**
+
 ```bash
 Error: Table 'User' doesn't exist
 ```
+
 **Fix**: Run `npx prisma migrate deploy`
 
 ### **Issue 3: Database Connection Failed**
+
 ```bash
 Error: Can't reach database server
 ```
+
 **Fix**: Check `DATABASE_URL` format and database status
 
 ### **Issue 4: No Initial Data**
+
 ```bash
 Error: No exercises found
 ```
+
 **Fix**: Run `npx prisma db seed`
 
 ## ✅ **Success Verification**
@@ -113,14 +127,17 @@ Error: No exercises found
 After fixing the database:
 
 1. **Test Health Endpoint**: `https://ironlog.onrender.com/health`
+
    - Should return: `{"status":"OK","timestamp":"...","environment":"production"}`
 
-2. **Test Registration**: 
+2. **Test Registration**:
+
    ```bash
    curl -X POST "https://ironlog.onrender.com/api/v1/auth/register" \
      -H "Content-Type: application/json" \
      -d '{"name":"Test User","email":"test@example.com","password":"testpass123"}'
    ```
+
    - Should return: `{"success":true,"data":{"user":{"id":"...","name":"Test User","email":"test@example.com"},...}}`
 
 3. **Test Frontend**: Go to `https://ironlog-web.vercel.app/register`
@@ -129,6 +146,7 @@ After fixing the database:
 ## 🚀 **After Database Fix**
 
 Once the database is properly set up:
+
 - ✅ User registration will work
 - ✅ User login will work
 - ✅ All app features will be functional

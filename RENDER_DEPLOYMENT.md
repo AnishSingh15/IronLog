@@ -3,6 +3,7 @@
 ## 🚀 **Deploying IronLog Backend to Render**
 
 ### **1. Prerequisites**
+
 - GitHub repository with IronLog code
 - Render account (free tier available)
 - PostgreSQL database (can use Render's free PostgreSQL)
@@ -10,6 +11,7 @@
 ### **2. Database Setup**
 
 #### **Option A: Use Render PostgreSQL (Recommended)**
+
 1. Go to Render Dashboard
 2. Click "New" → "PostgreSQL"
 3. Configure:
@@ -20,17 +22,20 @@
 4. Note down the connection details
 
 #### **Option B: External PostgreSQL**
+
 - Use any PostgreSQL provider (Supabase, Neon, etc.)
 - Ensure it's accessible from Render
 
 ### **3. Backend Service Setup**
 
 1. **Create Web Service**
+
    - Go to Render Dashboard
    - Click "New" → "Web Service"
    - Connect your GitHub repository
 
 2. **Configure Service**
+
    ```
    Name: ironlog-backend
    Environment: Node
@@ -42,6 +47,7 @@
    ```
 
 3. **Environment Variables**
+
    ```
    NODE_ENV=production
    DATABASE_URL=<your_postgresql_connection_string>
@@ -71,6 +77,7 @@ SEED_DATABASE=true  # Only for initial deployment
 ### **5. Database Migration & Seeding**
 
 #### **Initial Deployment**
+
 1. After service is deployed, access the service shell
 2. Run migrations:
    ```bash
@@ -82,6 +89,7 @@ SEED_DATABASE=true  # Only for initial deployment
    ```
 
 #### **Subsequent Deployments**
+
 - Migrations run automatically via the build command
 - Seeding is optional and controlled by `SEED_DATABASE` env var
 
@@ -90,6 +98,7 @@ SEED_DATABASE=true  # Only for initial deployment
 If deploying frontend to Render as well:
 
 1. **Create Static Site**
+
    - New → Static Site
    - Root Directory: `apps/web`
    - Build Command: `npm install && npm run build`
@@ -112,15 +121,19 @@ If you prefer using the provided build script:
 #### **Common Issues**
 
 1. **Prisma Client Not Generated**
+
    ```
    Error: Cannot find module '@prisma/client'
    ```
+
    **Solution**: Ensure `npx prisma generate` runs before `npm run build`
 
 2. **Database Connection Failed**
+
    ```
    Error: Can't reach database server
    ```
+
    **Solution**: Check DATABASE_URL format and network access
 
 3. **TypeScript Compilation Errors**
@@ -130,6 +143,7 @@ If you prefer using the provided build script:
    **Solution**: Ensure Prisma client is generated before TypeScript compilation
 
 #### **Build Command Debugging**
+
 ```bash
 # Full build command with debugging
 npm install && \
@@ -144,6 +158,7 @@ echo "Build completed successfully"
 Render will automatically check: `https://your-service.onrender.com/health`
 
 Expected response:
+
 ```json
 {
   "status": "ok",
@@ -190,6 +205,7 @@ Expected response:
 ## 🆘 **Support**
 
 If you encounter issues:
+
 1. Check Render service logs
 2. Verify environment variables
 3. Test database connectivity
