@@ -78,7 +78,7 @@ export default function ProfilePage() {
       const response = await apiClient.put('/auth/profile', values);
 
       // Update user in store
-      setUser(response.data.user);
+      setUser((response.data as any)?.user);
       setSuccess('Profile updated successfully!');
       setIsEditingProfile(false);
     } catch (error: any) {

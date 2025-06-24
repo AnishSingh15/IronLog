@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api';
+import apiClient from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
@@ -16,7 +16,7 @@ export function useAuth() {
       const response = await apiClient.login({ email, password });
       console.log('✅ Login successful:', response);
 
-      setUser(response.data.user);
+      setUser((response.data as any)?.user);
       router.push('/dashboard');
       return { success: true };
     } catch (error: any) {
@@ -51,7 +51,7 @@ export function useAuth() {
       const response = await apiClient.register({ name, email, password });
       console.log('✅ Registration successful:', response);
 
-      setUser(response.data.user);
+      setUser((response.data as any)?.user);
       router.push('/dashboard');
       return { success: true };
     } catch (error: any) {
@@ -98,7 +98,7 @@ export function useAuth() {
 
     try {
       const response = await apiClient.refreshToken();
-      setUser(response.data.user);
+      setUser((response.data as any)?.user);
       return true;
     } catch (error) {
       logout();

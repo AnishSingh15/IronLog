@@ -3,6 +3,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useTimer } from '@/hooks/useTimer';
 import apiClient from '@/lib/api';
+import { formatWeight } from '@/lib/weight';
 import { useAuthStore } from '@/store/auth';
 import { useTimerStore } from '@/store/timer';
 import { useWorkoutStore } from '@/store/workout';
@@ -136,8 +137,8 @@ export default function DashboardPage() {
 
       const response = await apiClient.get('/workouts/today');
 
-      // Handle 204 response (rest day)
-      if (response.status === 204) {
+      // Handle empty response (rest day)
+      if (!response.success || !response.data) {
         setIsRestDay(true);
         setCurrentWorkout(null);
         setCompletionPercentage(0);
@@ -146,7 +147,8 @@ export default function DashboardPage() {
         return;
       }
 
-      const { workoutDay, completionPercentage: completion, splitName: split } = response.data.data;
+      const responseData = response.data as any;
+      const { workoutDay, completionPercentage: completion, splitName: split } = responseData.data || responseData;
 
       setCurrentWorkout(workoutDay);
       setCompletionPercentage(completion);
@@ -189,7 +191,8 @@ export default function DashboardPage() {
     try {
       setIsLoadingExercises(true);
       const response = await apiClient.get('/exercises');
-      setAvailableExercises(response.data.data.exercisesByMuscleGroup);
+      const responseData = response.data as any;
+      setAvailableExercises(responseData.data?.exercisesByMuscleGroup || responseData.exercisesByMuscleGroup);
     } catch (error) {
       console.error('Failed to load exercises:', error);
       setError('Failed to load exercises. Please try again.');
@@ -204,7 +207,8 @@ export default function DashboardPage() {
       setError(null);
 
       const response = await apiClient.post('/workouts/start', { splitKey });
-      const { workoutDay, completionPercentage: completion, splitName: split } = response.data.data;
+      const responseData = response.data as any;
+      const { workoutDay, completionPercentage: completion, splitName: split } = responseData.data || responseData;
 
       setCurrentWorkout(workoutDay);
       setCompletionPercentage(completion);
@@ -243,7 +247,8 @@ export default function DashboardPage() {
         customSets: Object.keys(customSets).length > 0 ? customSets : undefined,
       });
 
-      const { workoutDay, completionPercentage: completion, splitName: split } = response.data.data;
+      const responseData = response.data as any;
+      const { workoutDay, completionPercentage: completion, splitName: split } = responseData.data || responseData;
 
       setCurrentWorkout(workoutDay);
       setCompletionPercentage(completion);
@@ -634,9 +639,47 @@ export default function DashboardPage() {
             )}
 
             {currentWorkout.completed && (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                🎉 Workout completed! Great job!
-              </Alert>
+              <motion.div {...fadeInUp}>
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  🎉 Workout completed! Great job!
+                </Alert>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="large"
+                  onClick={async () => {
+                    try {
+                      // Unmark the workout as completed to allow adding more sets
+                      await apiClient.patch(`/workouts/${currentWorkout.id}/uncomplete`);
+                      
+                      // Refresh the workout data
+                      const updatedWorkout = await apiClient.getTodayWorkout();
+                      const updatedData = updatedWorkout.data as any;
+                      setCurrentWorkout(updatedData.data || updatedData);
+                      
+                      console.log('✅ Workout session restarted');
+                    } catch (error) {
+                      console.error('❌ Failed to restart workout:', error);
+                      // Fallback: just mark as not completed locally
+                      if (currentWorkout) {
+                        setCurrentWorkout({ ...currentWorkout, completed: false });
+                      }
+                    }
+                  }}
+                  sx={{
+                    height: 48,
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    '&:hover': {
+                      borderColor: 'primary.dark',
+                      backgroundColor: 'primary.main',
+                      color: 'white',
+                    },
+                  }}
+                >
+                  Continue Training
+                </Button>
+              </motion.div>
             )}
           </CardContent>
         </Card>
@@ -770,7 +813,7 @@ export default function DashboardPage() {
                         {set.actualWeight !== null && set.actualReps !== null ? (
                           <Box>
                             <Typography variant="body1">
-                              <strong>{set.actualWeight}kg</strong> ×{' '}
+                              <strong>{formatWeight(set.actualWeight)}</strong> ×{' '}
                               <strong>{set.actualReps} reps</strong>
                             </Typography>
                             <Typography variant="body2" color="text.secondary">

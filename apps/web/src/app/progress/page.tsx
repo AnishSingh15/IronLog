@@ -157,7 +157,8 @@ export default function ProgressPage() {
 
       // Get all set records
       const response = await apiClient.get('/set-records');
-      const records: SetRecord[] = response.data.data.filter(
+      const responseData = response.data as any;
+      const records: SetRecord[] = (responseData.data || responseData).filter(
         (record: SetRecord) => record.actualWeight && record.actualReps
       );
 

@@ -104,8 +104,8 @@ export function PWANotifications() {
   return (
     <>
       {showNotificationPrompt && (
-        <div className="fixed top-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-80">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div className="fixed top-4 left-4 right-4 z-[9999] md:left-auto md:right-4 md:w-80">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 backdrop-blur-sm">
             <div className="flex items-start space-x-3">
               <div className="flex-shrink-0">
                 <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">

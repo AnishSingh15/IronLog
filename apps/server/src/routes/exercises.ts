@@ -204,4 +204,68 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
   }
 });
 
+// PUT /api/v1/exercises/:id - Update existing exercise
+router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, muscleGroup, defaultSets, defaultReps } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Exercise ID is required' }
+      });
+    }
+
+    // Check if exercise exists
+    const existingExercise = await prisma.exercise.findUnique({
+      where: { id }
+    });
+
+    if (!existingExercise) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Exercise not found' }
+      });
+    }
+
+    // If name is being changed, check for conflicts
+    if (name && name !== existingExercise.name) {
+      const nameConflict = await prisma.exercise.findUnique({
+        where: { name }
+      });
+
+      if (nameConflict) {
+        return res.status(409).json({
+          success: false,
+          error: { message: 'Exercise name already exists' }
+        });
+      }
+    }
+
+    // Update exercise with only provided fields
+    const updateData: Partial<Pick<Exercise, 'name' | 'muscleGroup' | 'defaultSets' | 'defaultReps'>> = {};
+    if (name !== undefined) updateData.name = name;
+    if (muscleGroup !== undefined) updateData.muscleGroup = muscleGroup;
+    if (defaultSets !== undefined) updateData.defaultSets = defaultSets;
+    if (defaultReps !== undefined) updateData.defaultReps = defaultReps;
+
+    const updatedExercise = await prisma.exercise.update({
+      where: { id },
+      data: updateData
+    });
+
+    return res.json({
+      success: true,
+      data: { exercise: updatedExercise }
+    });
+  } catch (error) {
+    console.error('Update exercise error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+});
+
 export default router;

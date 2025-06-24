@@ -1,164 +1,350 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import Cookies from 'js-cookie';
+/**
+ * API client for IronLog application with authentication handling
+ */
 
-class ApiClient {
-  private client: AxiosInstance;
+// Base configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-  constructor() {
-    const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+// Types
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: {
+    message: string;
+    code?: string;
+  };
+}
 
-    console.log('🔗 API Client initialized with baseURL:', baseURL);
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+}
 
-    this.client = axios.create({
-      baseURL,
-      withCredentials: true,
-      timeout: 10000, // 10 second timeout
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
 
-    // Request interceptor to add auth token
-    this.client.interceptors.request.use(config => {
-      const token = Cookies.get('accessToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
 
-    // Response interceptor for token refresh
-    this.client.interceptors.response.use(
-      response => response,
-      async error => {
-        const originalRequest = error.config;
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
+// Token management utilities
+class TokenManager {
+  private static readonly ACCESS_TOKEN_KEY = 'accessToken';
+  private static readonly REFRESH_TOKEN_KEY = 'refreshToken';
+  private static readonly EXPIRES_AT_KEY = 'expiresAt';
 
-          try {
-            const response = await this.client.post('/auth/refresh');
-            const { accessToken } = response.data.data;
-
-            Cookies.set('accessToken', accessToken, {
-              expires: 1 / 96, // 15 minutes
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'strict',
-            });
-
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            return this.client(originalRequest);
-          } catch (refreshError) {
-            // Refresh failed, redirect to login
-            Cookies.remove('accessToken');
-            if (typeof window !== 'undefined') {
-              window.location.href = '/login';
-            }
-            return Promise.reject(refreshError);
-          }
-        }
-
-        return Promise.reject(error);
-      }
-    );
+  static setTokens(tokens: AuthTokens): void {
+    if (typeof window === 'undefined') return;
+    
+    // Set tokens in localStorage with 7-day expiry
+    const expiresAt = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 days
+    
+    localStorage.setItem(this.ACCESS_TOKEN_KEY, tokens.accessToken);
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, tokens.refreshToken);
+    localStorage.setItem(this.EXPIRES_AT_KEY, expiresAt.toString());
   }
 
-  // Auth methods
-  async register(data: { name: string; email: string; password: string }) {
-    const response = await this.client.post('/auth/register', data);
-    const { accessToken } = response.data.data;
+  static getTokens(): AuthTokens | null {
+    if (typeof window === 'undefined') return null;
+    
+    const accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY);
+    const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
+    const expiresAt = localStorage.getItem(this.EXPIRES_AT_KEY);
 
-    Cookies.set('accessToken', accessToken, {
-      expires: 1 / 96, // 15 minutes
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-    });
-
-    return response.data;
-  }
-
-  async login(data: { email: string; password: string }) {
-    console.log('� Attempting login...');
-    const response = await this.client.post('/auth/login', data);
-    console.log('✅ Login successful');
-
-    const { accessToken } = response.data.data;
-
-    Cookies.set('accessToken', accessToken, {
-      expires: 1 / 96, // 15 minutes
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-    });
-
-    return response.data;
-  }
-
-  async logout() {
-    try {
-      await this.client.post('/auth/logout');
-    } finally {
-      Cookies.remove('accessToken');
+    if (!accessToken || !refreshToken || !expiresAt) {
+      return null;
     }
+
+    // Check if tokens have expired
+    if (Date.now() > parseInt(expiresAt)) {
+      this.clearTokens();
+      return null;
+    }
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresAt: parseInt(expiresAt)
+    };
   }
 
-  async refreshToken() {
-    const response = await this.client.post('/auth/refresh');
-    return response.data;
+  static clearTokens(): void {
+    if (typeof window === 'undefined') return;
+    
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    localStorage.removeItem(this.EXPIRES_AT_KEY);
   }
 
-  // Workout methods
-  async getTodayWorkout() {
-    const response = await this.client.get('/workouts/today');
-    return response.data;
-  }
-
-  async completeWorkout(workoutDayId: string) {
-    const response = await this.client.patch(`/workouts/${workoutDayId}/complete`);
-    return response.data;
-  }
-
-  // Set record methods
-  async createSetRecord(data: {
-    workoutDayId: string;
-    exerciseId: string;
-    setIndex: number;
-    plannedWeight?: number;
-    plannedReps?: number;
-    actualWeight?: number;
-    actualReps?: number;
-    secondsRest?: number;
-  }) {
-    const response = await this.client.post('/set-records', data);
-    return response.data;
-  }
-
-  // Exercise methods
-  async getExercises() {
-    const response = await this.client.get('/exercises');
-    return response.data;
-  }
-
-  // Generic methods
-  async get<T = any>(url: string): Promise<AxiosResponse<T>> {
-    return this.client.get(url);
-  }
-
-  async post<T = any>(url: string, data?: any): Promise<AxiosResponse<T>> {
-    return this.client.post(url, data);
-  }
-
-  async put<T = any>(url: string, data?: any): Promise<AxiosResponse<T>> {
-    return this.client.put(url, data);
-  }
-
-  async patch<T = any>(url: string, data?: any): Promise<AxiosResponse<T>> {
-    return this.client.patch(url, data);
-  }
-
-  async delete<T = any>(url: string): Promise<AxiosResponse<T>> {
-    return this.client.delete(url);
+  static getAccessToken(): string | null {
+    const tokens = this.getTokens();
+    return tokens?.accessToken || null;
   }
 }
 
-export const apiClient = new ApiClient();
+// API client class
+export class ApiClient {
+  private baseURL: string;
+
+  constructor(baseURL: string = API_BASE_URL) {
+    this.baseURL = baseURL;
+  }
+
+  private async makeRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    const url = `${this.baseURL}${endpoint}`;
+    
+    // Add authorization header if token exists
+    const accessToken = TokenManager.getAccessToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> || {}),
+    };
+
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+      });
+
+      // Handle 401 unauthorized - token might be expired
+      if (response.status === 401 && accessToken) {
+        // Clear invalid tokens
+        TokenManager.clearTokens();
+        
+        // Redirect to login if in browser
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        
+        return {
+          success: false,
+          error: { message: 'Authentication required' }
+        };
+      }
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          error: {
+            message: data.error?.message || 'Request failed',
+            code: data.error?.code
+          }
+        };
+      }
+
+      return data;
+    } catch (error) {
+      console.error('API request failed:', error);
+      return {
+        success: false,
+        error: {
+          message: error instanceof Error ? error.message : 'Network error'
+        }
+      };
+    }
+  }
+
+  // Auth endpoints
+  async login(credentials: LoginRequest): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
+    const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>(
+      '/api/v1/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      }
+    );
+
+    // Store tokens on successful login
+    if (response.success && response.data?.tokens) {
+      TokenManager.setTokens(response.data.tokens);
+    }
+
+    return response;
+  }
+
+  async register(userData: RegisterRequest): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
+    const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>(
+      '/api/v1/auth/register',
+      {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      }
+    );
+
+    // Store tokens on successful registration
+    if (response.success && response.data?.tokens) {
+      TokenManager.setTokens(response.data.tokens);
+    }
+
+    return response;
+  }
+
+  async refreshToken(): Promise<ApiResponse<{ tokens: AuthTokens }>> {
+    const refreshToken = TokenManager.getTokens()?.refreshToken;
+    if (!refreshToken) {
+      return {
+        success: false,
+        error: { message: 'No refresh token available' }
+      };
+    }
+
+    const response = await this.makeRequest<{ tokens: AuthTokens }>(
+      '/api/v1/auth/refresh',
+      {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken }),
+      }
+    );
+
+    // Store new tokens on successful refresh
+    if (response.success && response.data?.tokens) {
+      TokenManager.setTokens(response.data.tokens);
+    }
+
+    return response;
+  }
+
+  async logout(): Promise<void> {
+    try {
+      // Call logout endpoint to invalidate tokens on server
+      await this.makeRequest('/api/v1/auth/logout', {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    } finally {
+      // Always clear local tokens
+      TokenManager.clearTokens();
+    }
+  }
+
+  async getCurrentUser(): Promise<ApiResponse<{ user: User }>> {
+    return this.makeRequest<{ user: User }>('/api/v1/auth/me');
+  }
+
+  // Workout-specific endpoints
+  async getTodayWorkout(): Promise<ApiResponse<any>> {
+    return this.get('/workouts/today');
+  }
+
+  // Generic GET request
+  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, { method: 'GET' });
+  }
+
+  // Generic POST request
+  async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  // Generic PUT request
+  async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  // Generic PATCH request
+  async patch<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  // Generic DELETE request
+  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.makeRequest<T>(endpoint, { method: 'DELETE' });
+  }
+}
+
+// Default API client instance
+export const api = new ApiClient();
+
+// Auth utility functions
+export const isAuthenticated = (): boolean => {
+  return TokenManager.getTokens() !== null;
+};
+
+export const getAuthTokens = (): AuthTokens | null => {
+  return TokenManager.getTokens();
+};
+
+export const clearAuthTokens = (): void => {
+  TokenManager.clearTokens();
+};
+
+// Export the token manager for direct access if needed
+export { TokenManager };
+
+// Legacy API client wrapper for backward compatibility
+export const apiClient = {
+  async login(credentials: LoginRequest) {
+    return api.login(credentials);
+  },
+  
+  async register(userData: RegisterRequest) {
+    return api.register(userData);
+  },
+  
+  async logout() {
+    return api.logout();
+  },
+  
+  async refreshToken() {
+    return api.refreshToken();
+  },
+  
+  async getTodayWorkout() {
+    return api.getTodayWorkout();
+  },
+  
+  async get(endpoint: string) {
+    return api.get(endpoint);
+  },
+  
+  async post(endpoint: string, data?: any) {
+    return api.post(endpoint, data);
+  },
+  
+  async put(endpoint: string, data?: any) {
+    return api.put(endpoint, data);
+  },
+  
+  async patch(endpoint: string, data?: any) {
+    return api.patch(endpoint, data);
+  },
+  
+  async delete(endpoint: string) {
+    return api.delete(endpoint);
+  }
+};
+
+// Default export for backward compatibility
 export default apiClient;

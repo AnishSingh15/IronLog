@@ -2,6 +2,7 @@
 
 import { ThemeToggle } from '@/components/theme-toggle';
 import apiClient from '@/lib/api';
+import { formatWeight } from '@/lib/weight';
 import { useAuthStore } from '@/store/auth';
 import {
   ArrowBack as ArrowBackIcon,
@@ -167,7 +168,7 @@ export default function HistoryPage() {
       const response = await apiClient.get(
         `/workouts/history?startDate=${startDate}&endDate=${endDate}`
       );
-      setWorkoutDays(response.data.data || response.data);
+      setWorkoutDays((response.data as any)?.data || response.data);
     } catch (error: any) {
       console.error('Failed to load workout history:', error);
       setError('Failed to load workout history. Please try again.');
@@ -179,7 +180,7 @@ export default function HistoryPage() {
   const loadWorkoutStats = async () => {
     try {
       const response = await apiClient.get('/workouts/stats');
-      setStats(response.data.data || response.data);
+      setStats((response.data as any)?.data || response.data);
     } catch (error) {
       console.error('Failed to load workout stats:', error);
     }
@@ -557,11 +558,11 @@ export default function HistoryPage() {
                       {set.actualWeight !== null && set.actualReps !== null ? (
                         <Box sx={{ mt: 1 }}>
                           <Typography variant="body2" fontWeight="medium">
-                            ✅ {set.actualWeight}kg × {set.actualReps} reps
+                            ✅ {formatWeight(set.actualWeight)} × {set.actualReps} reps
                           </Typography>
                           {set.plannedWeight !== null && set.plannedReps !== null && (
                             <Typography variant="caption" color="text.secondary" display="block">
-                              Planned: {set.plannedWeight}kg × {set.plannedReps} reps
+                              Planned: {formatWeight(set.plannedWeight!)} × {set.plannedReps} reps
                             </Typography>
                           )}
                         </Box>
