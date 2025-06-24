@@ -32,7 +32,7 @@ cat > "$BUILD_DIR/package.json" << 'EOF'
     "start": "node dist/src/index.js"
   },
   "prisma": {
-    "seed": "node dist/src/scripts/seed.js"
+    "seed": "npx tsx src/scripts/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "5.7.1",
@@ -54,6 +54,7 @@ cat > "$BUILD_DIR/package.json" << 'EOF'
     "@types/morgan": "1.9.9",
     "@types/node": "20.10.5",
     "prisma": "5.7.1",
+    "tsx": "4.6.2",
     "typescript": "5.3.3"
   }
 }
@@ -79,11 +80,11 @@ npx prisma generate
 echo "🗄️ Running database migration..."
 npx prisma migrate deploy
 
-echo "🌱 Seeding database..."
-npx prisma db seed || echo "⚠️ Seeding failed or already done, continuing..."
-
 echo "🔨 Building TypeScript..."
 npx tsc
+
+echo "🌱 Seeding database..."
+npx prisma db seed || echo "⚠️ Seeding failed or already done, continuing..."
 
 # Step 6: Verify build
 if [ -f "dist/src/index.js" ]; then
