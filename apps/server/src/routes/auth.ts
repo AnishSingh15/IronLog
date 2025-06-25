@@ -82,7 +82,11 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
           email: user.email,
           createdAt: user.createdAt,
         },
-        accessToken,
+        tokens: {
+          accessToken,
+          refreshToken,
+          expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
+        },
       },
     });
   } catch (error: unknown) {
@@ -149,7 +153,11 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
           email: user.email,
           createdAt: user.createdAt,
         },
-        accessToken,
+        tokens: {
+          accessToken,
+          refreshToken,
+          expiresAt: Date.now() + 15 * 60 * 1000, // 15 minutes
+        },
       },
     });
   } catch (error: unknown) {

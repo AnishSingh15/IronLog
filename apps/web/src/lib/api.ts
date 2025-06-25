@@ -52,6 +52,12 @@ class TokenManager {
     // Set tokens in localStorage with 7-day expiry
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
 
+    console.log('🔐 Setting tokens:', { 
+      accessToken: tokens.accessToken?.substring(0, 20) + '...', 
+      refreshToken: tokens.refreshToken?.substring(0, 20) + '...',
+      expiresAt 
+    });
+
     localStorage.setItem(this.ACCESS_TOKEN_KEY, tokens.accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, tokens.refreshToken);
     localStorage.setItem(this.EXPIRES_AT_KEY, expiresAt.toString());
@@ -91,7 +97,14 @@ class TokenManager {
 
   static getAccessToken(): string | null {
     const tokens = this.getTokens();
-    return tokens?.accessToken || null;
+    const accessToken = tokens?.accessToken || null;
+    
+    console.log('🔐 Getting access token:', { 
+      hasToken: !!accessToken, 
+      tokenPreview: accessToken?.substring(0, 20) + '...' 
+    });
+    
+    return accessToken;
   }
 }
 
@@ -135,6 +148,9 @@ export class ApiClient {
 
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
+      console.log('🔐 Adding auth header:', { hasToken: true, tokenPreview: accessToken.substring(0, 20) + '...' });
+    } else {
+      console.log('🔐 No access token available for request');
     }
 
     try {
@@ -185,14 +201,25 @@ export class ApiClient {
 
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
+    console.log('🔐 Attempting login for:', credentials.email);
+    
     const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
 
+    console.log('🔐 Login response:', { 
+      success: response.success, 
+      hasTokens: !!response.data?.tokens,
+      tokensData: response.data?.tokens ? 'present' : 'missing'
+    });
+
     // Store tokens on successful login
     if (response.success && response.data?.tokens) {
       TokenManager.setTokens(response.data.tokens);
+      console.log('🔐 Tokens stored successfully');
+    } else {
+      console.error('🔐 Failed to store tokens - no tokens in response');
     }
 
     return response;
