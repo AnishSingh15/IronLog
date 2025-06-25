@@ -3,7 +3,7 @@
  */
 
 // Base configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = 'http://localhost:3001'; // We'll handle environment properly
 
 // Types
 export interface ApiResponse<T = any> {
@@ -48,10 +48,10 @@ class TokenManager {
 
   static setTokens(tokens: AuthTokens): void {
     if (typeof window === 'undefined') return;
-    
+
     // Set tokens in localStorage with 7-day expiry
-    const expiresAt = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 days
-    
+    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+
     localStorage.setItem(this.ACCESS_TOKEN_KEY, tokens.accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, tokens.refreshToken);
     localStorage.setItem(this.EXPIRES_AT_KEY, expiresAt.toString());
@@ -59,7 +59,7 @@ class TokenManager {
 
   static getTokens(): AuthTokens | null {
     if (typeof window === 'undefined') return null;
-    
+
     const accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY);
     const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
     const expiresAt = localStorage.getItem(this.EXPIRES_AT_KEY);
@@ -77,13 +77,13 @@ class TokenManager {
     return {
       accessToken,
       refreshToken,
-      expiresAt: parseInt(expiresAt)
+      expiresAt: parseInt(expiresAt),
     };
   }
 
   static clearTokens(): void {
     if (typeof window === 'undefined') return;
-    
+
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.EXPIRES_AT_KEY);
@@ -100,18 +100,16 @@ export class ApiClient {
   private baseURL: string;
 
   constructor(baseURL: string = API_BASE_URL) {
-    // Remove any existing /api/v1 suffix to avoid duplication
-    const cleanBaseURL = baseURL.replace(/\/api\/v1\/?$/, '');
+    // Simple and reliable: just append /api/v1 to clean base URL
+    const cleanBaseURL = baseURL.replace(/\/+$/, ''); // Remove trailing slashes
     this.baseURL = `${cleanBaseURL}/api/v1`;
     
-    // Debug logging (remove in production)
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.log('API Base URL Setup:', { 
-        originalBaseURL: baseURL, 
-        cleanBaseURL, 
-        finalBaseURL: this.baseURL 
-      });
-    }
+    // Always log for debugging
+    console.log('🔍 API Client Initialized:', {
+      inputBaseURL: baseURL,
+      cleanBaseURL,
+      finalBaseURL: this.baseURL
+    });
   }
 
   private async makeRequest<T>(
@@ -120,11 +118,19 @@ export class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
     
+    // Debug logging - ALWAYS log to catch the issue
+    console.log('🔍 API Request Debug:', {
+      endpoint,
+      baseURL: this.baseURL,
+      finalURL: url,
+      envVar: API_BASE_URL
+    });
+
     // Add authorization header if token exists
     const accessToken = TokenManager.getAccessToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string> || {}),
+      ...((options.headers as Record<string, string>) || {}),
     };
 
     if (accessToken) {
@@ -141,27 +147,27 @@ export class ApiClient {
       if (response.status === 401 && accessToken) {
         // Clear invalid tokens
         TokenManager.clearTokens();
-        
+
         // Redirect to login if in browser
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
-        
+
         return {
           success: false,
-          error: { message: 'Authentication required' }
+          error: { message: 'Authentication required' },
         };
       }
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         return {
           success: false,
           error: {
             message: data.error?.message || 'Request failed',
-            code: data.error?.code
-          }
+            code: data.error?.code,
+          },
         };
       }
 
@@ -171,21 +177,18 @@ export class ApiClient {
       return {
         success: false,
         error: {
-          message: error instanceof Error ? error.message : 'Network error'
-        }
+          message: error instanceof Error ? error.message : 'Network error',
+        },
       };
     }
   }
 
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
-    const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>(
-      '/auth/login',
-      {
-        method: 'POST',
-        body: JSON.stringify(credentials),
-      }
-    );
+    const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
 
     // Store tokens on successful login
     if (response.success && response.data?.tokens) {
@@ -195,14 +198,13 @@ export class ApiClient {
     return response;
   }
 
-  async register(userData: RegisterRequest): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
-    const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>(
-      '/auth/register',
-      {
-        method: 'POST',
-        body: JSON.stringify(userData),
-      }
-    );
+  async register(
+    userData: RegisterRequest
+  ): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
+    const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
 
     // Store tokens on successful registration
     if (response.success && response.data?.tokens) {
@@ -217,17 +219,14 @@ export class ApiClient {
     if (!refreshToken) {
       return {
         success: false,
-        error: { message: 'No refresh token available' }
+        error: { message: 'No refresh token available' },
       };
     }
 
-    const response = await this.makeRequest<{ tokens: AuthTokens }>(
-      '/auth/refresh',
-      {
-        method: 'POST',
-        body: JSON.stringify({ refreshToken }),
-      }
-    );
+    const response = await this.makeRequest<{ tokens: AuthTokens }>('/auth/refresh', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    });
 
     // Store new tokens on successful refresh
     if (response.success && response.data?.tokens) {
@@ -319,42 +318,42 @@ export const apiClient = {
   async login(credentials: LoginRequest) {
     return api.login(credentials);
   },
-  
+
   async register(userData: RegisterRequest) {
     return api.register(userData);
   },
-  
+
   async logout() {
     return api.logout();
   },
-  
+
   async refreshToken() {
     return api.refreshToken();
   },
-  
+
   async getTodayWorkout() {
     return api.getTodayWorkout();
   },
-  
+
   async get(endpoint: string) {
     return api.get(endpoint);
   },
-  
+
   async post(endpoint: string, data?: any) {
     return api.post(endpoint, data);
   },
-  
+
   async put(endpoint: string, data?: any) {
     return api.put(endpoint, data);
   },
-  
+
   async patch(endpoint: string, data?: any) {
     return api.patch(endpoint, data);
   },
-  
+
   async delete(endpoint: string) {
     return api.delete(endpoint);
-  }
+  },
 };
 
 // Default export for backward compatibility
