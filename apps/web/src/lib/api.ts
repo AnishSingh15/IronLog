@@ -100,7 +100,7 @@ export class ApiClient {
   private baseURL: string;
 
   constructor(baseURL: string = API_BASE_URL) {
-    this.baseURL = baseURL;
+    this.baseURL = `${baseURL}/api/v1`;
   }
 
   private async makeRequest<T>(
@@ -169,7 +169,7 @@ export class ApiClient {
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
     const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>(
-      '/api/v1/auth/login',
+      '/auth/login',
       {
         method: 'POST',
         body: JSON.stringify(credentials),
@@ -186,7 +186,7 @@ export class ApiClient {
 
   async register(userData: RegisterRequest): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
     const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>(
-      '/api/v1/auth/register',
+      '/auth/register',
       {
         method: 'POST',
         body: JSON.stringify(userData),
@@ -211,7 +211,7 @@ export class ApiClient {
     }
 
     const response = await this.makeRequest<{ tokens: AuthTokens }>(
-      '/api/v1/auth/refresh',
+      '/auth/refresh',
       {
         method: 'POST',
         body: JSON.stringify({ refreshToken }),
@@ -229,7 +229,7 @@ export class ApiClient {
   async logout(): Promise<void> {
     try {
       // Call logout endpoint to invalidate tokens on server
-      await this.makeRequest('/api/v1/auth/logout', {
+      await this.makeRequest('/auth/logout', {
         method: 'POST',
       });
     } catch (error) {
@@ -241,7 +241,7 @@ export class ApiClient {
   }
 
   async getCurrentUser(): Promise<ApiResponse<{ user: User }>> {
-    return this.makeRequest<{ user: User }>('/api/v1/auth/me');
+    return this.makeRequest<{ user: User }>('/auth/me');
   }
 
   // Workout-specific endpoints
