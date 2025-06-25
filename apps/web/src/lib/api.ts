@@ -2,8 +2,8 @@
  * API client for IronLog application with authentication handling
  */
 
-// Base configuration
-const API_BASE_URL = 'http://localhost:3001'; // We'll handle environment properly
+// Base configuration - hardcode for now to fix the immediate issue
+const API_BASE_URL = 'http://localhost:3001';
 
 // Types
 export interface ApiResponse<T = any> {
