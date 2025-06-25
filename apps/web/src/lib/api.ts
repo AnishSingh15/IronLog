@@ -100,7 +100,18 @@ export class ApiClient {
   private baseURL: string;
 
   constructor(baseURL: string = API_BASE_URL) {
-    this.baseURL = `${baseURL}/api/v1`;
+    // Remove any existing /api/v1 suffix to avoid duplication
+    const cleanBaseURL = baseURL.replace(/\/api\/v1\/?$/, '');
+    this.baseURL = `${cleanBaseURL}/api/v1`;
+    
+    // Debug logging (remove in production)
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.log('API Base URL Setup:', { 
+        originalBaseURL: baseURL, 
+        cleanBaseURL, 
+        finalBaseURL: this.baseURL 
+      });
+    }
   }
 
   private async makeRequest<T>(
