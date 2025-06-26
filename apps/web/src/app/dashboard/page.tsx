@@ -5,7 +5,7 @@ import { RestTimer } from '@/components/RestTimer';
 import { useWeightUnit } from '@/contexts/WeightUnitContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useTimer } from '@/hooks/useTimer';
-import apiClient, { api } from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { useTimerStore } from '@/store/timer';
 import { useWorkoutStore } from '@/store/workout';
@@ -16,9 +16,7 @@ import {
   FitnessCenter as FitnessCenterIcon,
   History as HistoryIcon,
   ExitToApp as LogoutIcon,
-  Menu as MenuIcon,
   Pause as PauseIcon,
-  Person as PersonIcon,
   PlayArrow as PlayIcon,
   TrendingUp as ProgressIcon,
   Scale as ScaleIcon,
@@ -29,7 +27,6 @@ import {
   AccordionDetails,
   AccordionSummary,
   Alert,
-  AppBar,
   Avatar,
   Box,
   Button,
@@ -52,11 +49,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Menu,
-  MenuItem,
   Paper,
   TextField,
-  Toolbar,
   Typography,
   useMediaQuery,
   useTheme,
@@ -248,11 +242,11 @@ export default function DashboardPage() {
     try {
       setIsLoadingExercises(true);
       const response = await api.get('/exercises');
-      
+
       // Check if response is successful and has data
       if (response.success && response.data) {
         const responseData = response.data as any;
-        
+
         // Handle the nested data structure properly
         if (responseData.exercisesByMuscleGroup) {
           setAvailableExercises(responseData.exercisesByMuscleGroup);
@@ -1197,336 +1191,340 @@ export default function DashboardPage() {
       <AppHeader title="Dashboard" />
       <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
         <Container maxWidth="lg" sx={{ py: 3, pb: 12 }}>
-        <motion.div initial="initial" animate="animate" variants={staggerContainer}>
-          {error && (
-            <motion.div variants={fadeInUp}>
-              <Alert severity="error" sx={{ mb: 3 }}>
-                {error}
-              </Alert>
-            </motion.div>
-          )}
+          <motion.div initial="initial" animate="animate" variants={staggerContainer}>
+            {error && (
+              <motion.div variants={fadeInUp}>
+                <Alert severity="error" sx={{ mb: 3 }}>
+                  {error}
+                </Alert>
+              </motion.div>
+            )}
 
-          {workoutLoading ? (
-            <motion.div variants={fadeInUp}>
-              <Card>
-                <CardContent sx={{ textAlign: 'center', py: 8 }}>
-                  <Typography variant="h6" color="text.secondary">
-                    Loading your workout...
-                  </Typography>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ) : currentWorkout ? (
-            <>
-              {renderWorkoutSummary()}
-              {renderExercises()}
-            </>
-          ) : isRestDay ? (
-            <motion.div variants={fadeInUp}>
-              <Card>
-                <CardContent sx={{ textAlign: 'center', py: 8 }}>
-                  <FitnessCenterIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-                  <Typography variant="h5" gutterBottom>
-                    Rest Day
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    Take a well-deserved break! Recovery is just as important as training.
-                  </Typography>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ) : (
-            <motion.div variants={fadeInUp}>
-              <Card>
-                <CardContent sx={{ textAlign: 'center', py: 8 }}>
-                  <FitnessCenterIcon sx={{ fontSize: 64, color: 'primary.main', mb: 3 }} />
-                  <Typography variant="h5" gutterBottom>
-                    Ready to Start Your Workout?
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                    No workout scheduled for today. Create your custom workout by selecting
-                    exercises!
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={() => setShowWorkoutModal(true)}
-                    startIcon={<FitnessCenterIcon />}
-                    sx={{
-                      py: 2,
-                      px: 4,
-                      fontSize: '1.1rem',
-                      borderRadius: 3,
-                      background: 'linear-gradient(135deg, #F46036 0%, #E66CB2 100%)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #E55030 0%, #D45BA0 100%)',
-                      },
-                    }}
-                  >
-                    Start Workout
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </motion.div>
-      </Container>
+            {workoutLoading ? (
+              <motion.div variants={fadeInUp}>
+                <Card>
+                  <CardContent sx={{ textAlign: 'center', py: 8 }}>
+                    <Typography variant="h6" color="text.secondary">
+                      Loading your workout...
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : currentWorkout ? (
+              <>
+                {renderWorkoutSummary()}
+                {renderExercises()}
+              </>
+            ) : isRestDay ? (
+              <motion.div variants={fadeInUp}>
+                <Card>
+                  <CardContent sx={{ textAlign: 'center', py: 8 }}>
+                    <FitnessCenterIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                    <Typography variant="h5" gutterBottom>
+                      Rest Day
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                      Take a well-deserved break! Recovery is just as important as training.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div variants={fadeInUp}>
+                <Card>
+                  <CardContent sx={{ textAlign: 'center', py: 8 }}>
+                    <FitnessCenterIcon sx={{ fontSize: 64, color: 'primary.main', mb: 3 }} />
+                    <Typography variant="h5" gutterBottom>
+                      Ready to Start Your Workout?
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                      No workout scheduled for today. Create your custom workout by selecting
+                      exercises!
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      onClick={() => setShowWorkoutModal(true)}
+                      startIcon={<FitnessCenterIcon />}
+                      sx={{
+                        py: 2,
+                        px: 4,
+                        fontSize: '1.1rem',
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, #F46036 0%, #E66CB2 100%)',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #E55030 0%, #D45BA0 100%)',
+                        },
+                      }}
+                    >
+                      Start Workout
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </motion.div>
+        </Container>
 
-      <AnimatePresence>{renderTimerFab()}</AnimatePresence>
+        <AnimatePresence>{renderTimerFab()}</AnimatePresence>
 
-      {/* Custom Workout Selection Modal */}
-      <Dialog
-        open={showWorkoutModal}
-        onClose={() => setShowWorkoutModal(false)}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: {
-            background: 'linear-gradient(135deg, #F46036 0%, #E66CB2 100%)',
-            color: 'white',
-            borderRadius: 3,
-            maxHeight: '90vh',
-          },
-        }}
-      >
-        <DialogTitle>
-          <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
-            🏋️ Create Your Workout
-          </Typography>
-          <Typography variant="body1" sx={{ textAlign: 'center', mt: 1, opacity: 0.9 }}>
-            Select exercises for today's session
-          </Typography>
-        </DialogTitle>
-        <DialogContent sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
-          {isLoadingExercises ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                Loading exercises...
-              </Typography>
-            </Box>
-          ) : (
-            <Box sx={{ mt: 2 }}>
-              {Object.entries(availableExercises).map(([muscleGroup, exercises]) => (
-                <Box key={muscleGroup} sx={{ mb: 3 }}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-                    💪 {muscleGroup}
-                  </Typography>
-                  <Grid container spacing={2}>
-                    {exercises.map((exercise: any) => {
-                      const isSelected = selectedExercises.includes(exercise.id);
-                      const customSetCount = customSets[exercise.id] || exercise.defaultSets;
+        {/* Custom Workout Selection Modal */}
+        <Dialog
+          open={showWorkoutModal}
+          onClose={() => setShowWorkoutModal(false)}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              background: 'linear-gradient(135deg, #F46036 0%, #E66CB2 100%)',
+              color: 'white',
+              borderRadius: 3,
+              maxHeight: '90vh',
+            },
+          }}
+        >
+          <DialogTitle>
+            <Typography
+              variant="h4"
+              component="div"
+              sx={{ fontWeight: 'bold', textAlign: 'center' }}
+            >
+              🏋️ Create Your Workout
+            </Typography>
+            <Typography variant="body1" sx={{ textAlign: 'center', mt: 1, opacity: 0.9 }}>
+              Select exercises for today's session
+            </Typography>
+          </DialogTitle>
+          <DialogContent sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
+            {isLoadingExercises ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  Loading exercises...
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ mt: 2 }}>
+                {Object.entries(availableExercises).map(([muscleGroup, exercises]) => (
+                  <Box key={muscleGroup} sx={{ mb: 3 }}>
+                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+                      💪 {muscleGroup}
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {exercises.map((exercise: any) => {
+                        const isSelected = selectedExercises.includes(exercise.id);
+                        const customSetCount = customSets[exercise.id] || exercise.defaultSets;
 
-                      return (
-                        <Grid item xs={12} sm={6} key={exercise.id}>
-                          <Paper
-                            onClick={() => toggleExerciseSelection(exercise.id)}
-                            sx={{
-                              p: 2,
-                              cursor: 'pointer',
-                              backgroundColor: isSelected
-                                ? 'rgba(255,255,255,0.3)'
-                                : 'rgba(255,255,255,0.1)',
-                              border: isSelected
-                                ? '2px solid rgba(255,255,255,0.8)'
-                                : '1px solid rgba(255,255,255,0.3)',
-                              borderRadius: 2,
-                              transition: 'all 0.2s ease',
-                              '&:hover': {
-                                backgroundColor: 'rgba(255,255,255,0.2)',
-                                transform: 'translateY(-2px)',
-                              },
-                            }}
-                          >
-                            <Box
+                        return (
+                          <Grid item xs={12} sm={6} key={exercise.id}>
+                            <Paper
+                              onClick={() => toggleExerciseSelection(exercise.id)}
                               sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
+                                p: 2,
+                                cursor: 'pointer',
+                                backgroundColor: isSelected
+                                  ? 'rgba(255,255,255,0.3)'
+                                  : 'rgba(255,255,255,0.1)',
+                                border: isSelected
+                                  ? '2px solid rgba(255,255,255,0.8)'
+                                  : '1px solid rgba(255,255,255,0.3)',
+                                borderRadius: 2,
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(255,255,255,0.2)',
+                                  transform: 'translateY(-2px)',
+                                },
                               }}
                             >
-                              <Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                                  {exercise.name}
-                                </Typography>
-                                <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                                  {exercise.defaultReps} reps × {customSetCount} sets
-                                </Typography>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                }}
+                              >
+                                <Box>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                    {exercise.name}
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                                    {exercise.defaultReps} reps × {customSetCount} sets
+                                  </Typography>
+                                </Box>
+                                {isSelected && <CheckIcon sx={{ color: 'white' }} />}
                               </Box>
-                              {isSelected && <CheckIcon sx={{ color: 'white' }} />}
-                            </Box>
 
-                            {isSelected && (
-                              <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="caption" sx={{ minWidth: '40px' }}>
-                                  Sets:
-                                </Typography>
-                                <TextField
-                                  size="small"
-                                  type="number"
-                                  value={customSetCount}
-                                  onChange={e =>
-                                    updateCustomSets(
-                                      exercise.id,
-                                      parseInt(e.target.value) || exercise.defaultSets
-                                    )
-                                  }
-                                  onClick={e => e.stopPropagation()}
-                                  inputProps={{ min: 1, max: 10 }}
-                                  sx={{
-                                    width: '80px',
-                                    '& .MuiOutlinedInput-root': {
-                                      backgroundColor: 'rgba(255,255,255,0.2)',
-                                      '& fieldset': {
-                                        borderColor: 'rgba(255,255,255,0.5)',
+                              {isSelected && (
+                                <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography variant="caption" sx={{ minWidth: '40px' }}>
+                                    Sets:
+                                  </Typography>
+                                  <TextField
+                                    size="small"
+                                    type="number"
+                                    value={customSetCount}
+                                    onChange={e =>
+                                      updateCustomSets(
+                                        exercise.id,
+                                        parseInt(e.target.value) || exercise.defaultSets
+                                      )
+                                    }
+                                    onClick={e => e.stopPropagation()}
+                                    inputProps={{ min: 1, max: 10 }}
+                                    sx={{
+                                      width: '80px',
+                                      '& .MuiOutlinedInput-root': {
+                                        backgroundColor: 'rgba(255,255,255,0.2)',
+                                        '& fieldset': {
+                                          borderColor: 'rgba(255,255,255,0.5)',
+                                        },
+                                        '&:hover fieldset': {
+                                          borderColor: 'rgba(255,255,255,0.7)',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                          borderColor: 'white',
+                                        },
                                       },
-                                      '&:hover fieldset': {
-                                        borderColor: 'rgba(255,255,255,0.7)',
+                                      '& .MuiInputBase-input': {
+                                        color: 'white',
+                                        textAlign: 'center',
                                       },
-                                      '&.Mui-focused fieldset': {
-                                        borderColor: 'white',
-                                      },
-                                    },
-                                    '& .MuiInputBase-input': {
-                                      color: 'white',
-                                      textAlign: 'center',
-                                    },
-                                  }}
-                                />
-                              </Box>
-                            )}
-                          </Paper>
-                        </Grid>
-                      );
-                    })}
-                  </Grid>
-                </Box>
-              ))}
+                                    }}
+                                  />
+                                </Box>
+                              )}
+                            </Paper>
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ p: 3, flexDirection: 'column', gap: 2 }}>
+            {selectedExercises.length > 0 && (
+              <Typography variant="body2" sx={{ opacity: 0.9, textAlign: 'center' }}>
+                {selectedExercises.length} exercise{selectedExercises.length !== 1 ? 's' : ''}{' '}
+                selected
+              </Typography>
+            )}
+            <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+              <Button
+                onClick={() => setShowWorkoutModal(false)}
+                disabled={isStartingWorkout}
+                sx={{
+                  color: 'white',
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  '&:hover': { borderColor: 'white' },
+                }}
+                variant="outlined"
+                fullWidth
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={createCustomWorkout}
+                disabled={isStartingWorkout || selectedExercises.length === 0}
+                variant="contained"
+                fullWidth
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                  '&:disabled': { bgcolor: 'rgba(255,255,255,0.1)' },
+                }}
+              >
+                {isStartingWorkout ? 'Creating Workout...' : 'Start Workout'}
+              </Button>
             </Box>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 3, flexDirection: 'column', gap: 2 }}>
-          {selectedExercises.length > 0 && (
-            <Typography variant="body2" sx={{ opacity: 0.9, textAlign: 'center' }}>
-              {selectedExercises.length} exercise{selectedExercises.length !== 1 ? 's' : ''}{' '}
-              selected
+          </DialogActions>
+        </Dialog>
+
+        {/* Navigation Drawer for Mobile */}
+        {isMobile && renderNavigationDrawer()}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          aria-labelledby="delete-dialog-title"
+          aria-describedby="delete-dialog-description"
+        >
+          <DialogTitle id="delete-dialog-title">Delete Workout?</DialogTitle>
+          <DialogContent>
+            <Typography id="delete-dialog-description">
+              Are you sure you want to delete this workout? This action cannot be undone. You'll
+              return to the main screen where you can choose to start a new workout or take a rest
+              day.
             </Typography>
-          )}
-          <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
-            <Button
-              onClick={() => setShowWorkoutModal(false)}
-              disabled={isStartingWorkout}
-              sx={{
-                color: 'white',
-                borderColor: 'rgba(255,255,255,0.5)',
-                '&:hover': { borderColor: 'white' },
-              }}
-              variant="outlined"
-              fullWidth
-            >
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowDeleteDialog(false)} color="inherit">
               Cancel
             </Button>
-            <Button
-              onClick={createCustomWorkout}
-              disabled={isStartingWorkout || selectedExercises.length === 0}
-              variant="contained"
-              fullWidth
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.2)',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
-                '&:disabled': { bgcolor: 'rgba(255,255,255,0.1)' },
-              }}
-            >
-              {isStartingWorkout ? 'Creating Workout...' : 'Start Workout'}
+            <Button onClick={deleteWorkout} color="error" variant="contained">
+              Delete Workout
             </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Rest Timer */}
+        <RestTimer
+          isVisible={showRestTimer}
+          onTimerEnd={handleRestTimerEnd}
+          defaultTime={restTimerDefaultTime}
+          onClose={handleCloseRestTimer}
+        />
+
+        {/* Rest Timer Overlay */}
+        {showRestTimer && (
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+              p: 2,
+            }}
+            onClick={handleCloseRestTimer}
+          >
+            <Box onClick={e => e.stopPropagation()}>
+              <RestTimer
+                isVisible={showRestTimer}
+                onTimerEnd={handleRestTimerEnd}
+                onClose={handleCloseRestTimer}
+                defaultTime={180} // 3 minutes default
+              />
+            </Box>
           </Box>
-        </DialogActions>
-      </Dialog>
+        )}
 
-      {/* Navigation Drawer for Mobile */}
-      {isMobile && renderNavigationDrawer()}
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        aria-labelledby="delete-dialog-title"
-        aria-describedby="delete-dialog-description"
-      >
-        <DialogTitle id="delete-dialog-title">Delete Workout?</DialogTitle>
-        <DialogContent>
-          <Typography id="delete-dialog-description">
-            Are you sure you want to delete this workout? This action cannot be undone. You'll
-            return to the main screen where you can choose to start a new workout or take a rest
-            day.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowDeleteDialog(false)} color="inherit">
-            Cancel
-          </Button>
-          <Button onClick={deleteWorkout} color="error" variant="contained">
-            Delete Workout
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Rest Timer */}
-      <RestTimer
-        isVisible={showRestTimer}
-        onTimerEnd={handleRestTimerEnd}
-        defaultTime={restTimerDefaultTime}
-        onClose={handleCloseRestTimer}
-      />
-
-      {/* Rest Timer Overlay */}
-      {showRestTimer && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            p: 2,
-          }}
-          onClick={handleCloseRestTimer}
-        >
-          <Box onClick={e => e.stopPropagation()}>
-            <RestTimer
-              isVisible={showRestTimer}
-              onTimerEnd={handleRestTimerEnd}
-              onClose={handleCloseRestTimer}
-              defaultTime={180} // 3 minutes default
-            />
-          </Box>
-        </Box>
-      )}
-
-      {/* Quick Rest Timer FAB */}
-      {currentWorkout && !showRestTimer && (
-        <Fab
-          color="primary"
-          aria-label="rest timer"
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-            zIndex: 1000,
-          }}
-          onClick={() => {
-            setRestTimerFor('quick-timer');
-            setShowRestTimer(true);
-          }}
-        >
-          <TimerIcon />
-        </Fab>
-      )}
-    </Box>
+        {/* Quick Rest Timer FAB */}
+        {currentWorkout && !showRestTimer && (
+          <Fab
+            color="primary"
+            aria-label="rest timer"
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+              zIndex: 1000,
+            }}
+            onClick={() => {
+              setRestTimerFor('quick-timer');
+              setShowRestTimer(true);
+            }}
+          >
+            <TimerIcon />
+          </Fab>
+        )}
+      </Box>
     </>
   );
 }

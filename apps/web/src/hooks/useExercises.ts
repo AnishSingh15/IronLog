@@ -34,7 +34,7 @@ export function useExercises(filters: ExerciseFilters = {}) {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await api.getExercises({
         search: filters.search || undefined,
         muscleGroup: filters.muscleGroup || undefined,
@@ -57,10 +57,12 @@ export function useExercises(filters: ExerciseFilters = {}) {
     fetchExercises();
   }, [fetchExercises]);
 
-  const createExercise = async (exerciseData: ExerciseFormData): Promise<{ success: boolean; error?: string }> => {
+  const createExercise = async (
+    exerciseData: ExerciseFormData
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await api.createExercise(exerciseData);
-      
+
       if (response.success) {
         await fetchExercises(); // Refresh the list
         return { success: true };
@@ -73,10 +75,13 @@ export function useExercises(filters: ExerciseFilters = {}) {
     }
   };
 
-  const updateExercise = async (id: string, exerciseData: Partial<ExerciseFormData>): Promise<{ success: boolean; error?: string }> => {
+  const updateExercise = async (
+    id: string,
+    exerciseData: Partial<ExerciseFormData>
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await api.updateExercise(id, exerciseData);
-      
+
       if (response.success) {
         await fetchExercises(); // Refresh the list
         return { success: true };
@@ -92,7 +97,7 @@ export function useExercises(filters: ExerciseFilters = {}) {
   const deleteExercise = async (id: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await api.deleteExercise(id);
-      
+
       if (response.success) {
         await fetchExercises(); // Refresh the list
         return { success: true };
@@ -130,7 +135,7 @@ export function usePopularExercises(limit: number = 10) {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await api.getPopularExercises(limit);
 
         if (response.success && response.data) {

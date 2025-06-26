@@ -302,8 +302,8 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res: Response) => {
     if (setRecordsCount > 0) {
       return res.status(409).json({
         success: false,
-        error: { 
-          message: `Cannot delete exercise "${existingExercise.name}" as it is used in ${setRecordsCount} set record(s). Please remove all related records first.` 
+        error: {
+          message: `Cannot delete exercise "${existingExercise.name}" as it is used in ${setRecordsCount} set record(s). Please remove all related records first.`,
         },
       });
     }

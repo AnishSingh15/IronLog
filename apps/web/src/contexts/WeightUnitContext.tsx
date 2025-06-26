@@ -39,10 +39,10 @@ export const WeightUnitProvider: React.FC<WeightUnitProviderProps> = ({ children
     try {
       const newMetricSystem = !useMetricSystem;
       setUseMetricSystem(newMetricSystem);
-      
+
       // Save preference to localStorage
       localStorage.setItem('useMetricSystem', newMetricSystem.toString());
-      
+
       // Optionally call an API to save user preference
       // await apiClient.patch('/user/preferences', { useMetricSystem: newMetricSystem });
     } catch (error) {
@@ -68,7 +68,7 @@ export const WeightUnitProvider: React.FC<WeightUnitProviderProps> = ({ children
     if (toMetric === undefined) {
       toMetric = useMetricSystem;
     }
-    
+
     if (toMetric) {
       return useMetricSystem ? weight : weight / 2.20462;
     } else {
@@ -84,9 +84,5 @@ export const WeightUnitProvider: React.FC<WeightUnitProviderProps> = ({ children
     convertWeight,
   };
 
-  return (
-    <WeightUnitContext.Provider value={value}>
-      {children}
-    </WeightUnitContext.Provider>
-  );
+  return <WeightUnitContext.Provider value={value}>{children}</WeightUnitContext.Provider>;
 };

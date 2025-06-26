@@ -1,17 +1,15 @@
 'use client';
 
 import { AppHeader } from '@/components/AppHeader';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { WeightDisplay } from '@/components/WeightComponents';
 import { useWeightUnit } from '@/contexts/WeightUnitContext';
 import { useAuth } from '@/hooks/useAuth';
-import apiClient, { api } from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import {
   BarChart as BarChartIcon,
   FilterList as FilterIcon,
   Sort as SortIcon,
-  TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -24,7 +22,6 @@ import {
   FormControl,
   Grid,
   InputLabel,
-  Menu,
   MenuItem,
   Paper,
   Select,
@@ -385,7 +382,9 @@ export default function ProgressPage() {
                           <YAxis />
                           <Tooltip
                             formatter={(value: any, name: any) => [
-                              name === 'volume' ? `${value} ${useMetricSystem ? 'kg' : 'lbs'}` : value,
+                              name === 'volume'
+                                ? `${value} ${useMetricSystem ? 'kg' : 'lbs'}`
+                                : value,
                               name === 'volume' ? 'Total Volume' : 'Total Sets',
                             ]}
                           />

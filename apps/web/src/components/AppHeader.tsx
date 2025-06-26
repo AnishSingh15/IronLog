@@ -5,14 +5,14 @@ import { useWeightUnit } from '@/contexts/WeightUnitContext';
 import { useAuthStore } from '@/store/auth';
 import {
   Dashboard as DashboardIcon,
-  ExitToApp as LogoutIcon,
-  FitnessCenter as FitnessCenterIcon,
   FitnessCenter as ExercisesIcon,
+  FitnessCenter as FitnessCenterIcon,
   History as HistoryIcon,
+  ExitToApp as LogoutIcon,
   Menu as MenuIcon,
   Person as PersonIcon,
-  Scale as ScaleIcon,
   TrendingUp as ProgressIcon,
+  Scale as ScaleIcon,
 } from '@mui/icons-material';
 import {
   AppBar,
@@ -70,7 +70,8 @@ export function AppHeader({ title = 'IronLog', showWeightToggle = true }: AppHea
     { label: 'History', path: '/history', icon: <HistoryIcon /> },
     { label: 'Progress', path: '/progress', icon: <ProgressIcon /> },
     { label: 'Exercises', path: '/exercises', icon: <ExercisesIcon /> },
-  ];  const renderNavigationDrawer = () => {
+  ];
+  const renderNavigationDrawer = () => {
     return (
       <Drawer
         anchor="right"
@@ -96,7 +97,7 @@ export function AppHeader({ title = 'IronLog', showWeightToggle = true }: AppHea
         </Box>
 
         <List sx={{ px: 1 }}>
-          {navigationItems.map((item) => (
+          {navigationItems.map(item => (
             <ListItem key={item.path} disablePadding>
               <ListItemButton
                 onClick={() => {
@@ -110,9 +111,7 @@ export function AppHeader({ title = 'IronLog', showWeightToggle = true }: AppHea
                   bgcolor: pathname === item.path ? 'rgba(255,255,255,0.2)' : 'transparent',
                 }}
               >
-                <ListItemIcon sx={{ color: 'white' }}>
-                  {item.icon}
-                </ListItemIcon>
+                <ListItemIcon sx={{ color: 'white' }}>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.label} />
               </ListItemButton>
             </ListItem>
@@ -177,7 +176,7 @@ export function AppHeader({ title = 'IronLog', showWeightToggle = true }: AppHea
             {!isMobile && (
               <>
                 {(() => {
-                  return navigationItems.map((item) => (
+                  return navigationItems.map(item => (
                     <Button
                       key={item.path}
                       color="inherit"
@@ -193,7 +192,7 @@ export function AppHeader({ title = 'IronLog', showWeightToggle = true }: AppHea
                     </Button>
                   ));
                 })()}
-                
+
                 {/* Weight Unit Toggle Button */}
                 {showWeightToggle && (
                   <IconButton

@@ -20,7 +20,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface RestTimerProps {
   onTimerEnd?: () => void;
@@ -29,11 +29,11 @@ interface RestTimerProps {
   isVisible?: boolean;
 }
 
-export function RestTimer({ 
-  onTimerEnd, 
+export function RestTimer({
+  onTimerEnd,
   onClose,
   defaultTime = 180, // 3 minutes default
-  isVisible = false 
+  isVisible = false,
 }: RestTimerProps) {
   const theme = useTheme();
   const [timeLeft, setTimeLeft] = useState(defaultTime);
@@ -48,25 +48,25 @@ export function RestTimer({
     // Create a simple bell sound using Web Audio API
     const createBellSound = () => {
       if (typeof window === 'undefined') return;
-      
+
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
+
       const playBell = () => {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
+
         // Bell-like frequency progression
         oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.5);
-        
+
         // Bell-like volume envelope
         gainNode.gain.setValueAtTime(0, audioContext.currentTime);
         gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
-        
+
         oscillator.type = 'sine';
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 2);
@@ -106,13 +106,16 @@ export function RestTimer({
     setTimeLeft(targetTime);
   }, [targetTime]);
 
-  const handleTimeChange = useCallback((_: Event, newValue: number | number[]) => {
-    const value = Array.isArray(newValue) ? newValue[0] : newValue;
-    setTargetTime(value);
-    if (!isRunning) {
-      setTimeLeft(value);
-    }
-  }, [isRunning]);
+  const handleTimeChange = useCallback(
+    (_: Event, newValue: number | number[]) => {
+      const value = Array.isArray(newValue) ? newValue[0] : newValue;
+      setTargetTime(value);
+      if (!isRunning) {
+        setTimeLeft(value);
+      }
+    },
+    [isRunning]
+  );
 
   // Timer logic
   useEffect(() => {
@@ -164,9 +167,10 @@ export function RestTimer({
     >
       <Card
         sx={{
-          background: theme.palette.mode === 'dark' 
-            ? 'linear-gradient(135deg, #424242 0%, #616161 100%)'
-            : 'linear-gradient(135deg, #3D9970 0%, #A3B18A 100%)',
+          background:
+            theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, #424242 0%, #616161 100%)'
+              : 'linear-gradient(135deg, #3D9970 0%, #A3B18A 100%)',
           color: 'white',
           borderRadius: 3,
           boxShadow: theme.shadows[8],
@@ -174,7 +178,9 @@ export function RestTimer({
         }}
       >
         <CardContent sx={{ textAlign: 'center', p: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
+          >
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
               Rest Timer
             </Typography>
@@ -183,7 +189,7 @@ export function RestTimer({
                 onClick={onClose}
                 sx={{
                   color: 'white',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
                 }}
                 size="small"
               >
@@ -220,7 +226,7 @@ export function RestTimer({
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
               />
             </svg>
-            
+
             {/* Timer display */}
             <Box
               sx={{
@@ -232,21 +238,21 @@ export function RestTimer({
               }}
             >
               <motion.div
-                animate={{ 
+                animate={{
                   scale: timeLeft <= 10 && isRunning ? [1, 1.1, 1] : 1,
-                  color: timeLeft <= 10 ? '#ff4444' : 'white'
+                  color: timeLeft <= 10 ? '#ff4444' : 'white',
                 }}
-                transition={{ 
+                transition={{
                   scale: { duration: 1, repeat: timeLeft <= 10 && isRunning ? Infinity : 0 },
-                  color: { duration: 0.3 }
+                  color: { duration: 0.3 },
                 }}
               >
-                <Typography 
-                  variant="h3" 
-                  sx={{ 
+                <Typography
+                  variant="h3"
+                  sx={{
                     fontWeight: 'bold',
                     fontFamily: 'monospace',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
                   }}
                 >
                   {formatTime(timeLeft)}
@@ -257,13 +263,13 @@ export function RestTimer({
 
           {/* Time Slider */}
           <Box sx={{ mb: 3, px: 2 }}>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                mb: 2, 
+            <Typography
+              variant="body1"
+              sx={{
+                mb: 2,
                 fontWeight: 'bold',
                 textAlign: 'center',
-                color: 'white' 
+                color: 'white',
               }}
             >
               Set Rest Time: {formatTime(targetTime)}
@@ -311,29 +317,31 @@ export function RestTimer({
                 { value: 300, label: '5m' },
               ]}
               valueLabelDisplay="auto"
-              valueLabelFormat={(value) => formatTime(value)}
+              valueLabelFormat={value => formatTime(value)}
             />
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                display: 'block', 
-                textAlign: 'center', 
+            <Typography
+              variant="caption"
+              sx={{
+                display: 'block',
+                textAlign: 'center',
                 mt: 1,
                 opacity: 0.8,
-                color: 'white'
+                color: 'white',
               }}
             >
-              {isRunning ? 'Timer is running - stop to change time' : 'Drag to set custom rest time (30s - 10m)'}
+              {isRunning
+                ? 'Timer is running - stop to change time'
+                : 'Drag to set custom rest time (30s - 10m)'}
             </Typography>
           </Box>
 
           {/* Quick Time Preset Buttons */}
           <Box sx={{ display: 'flex', gap: 1, mb: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {[60, 90, 120, 180, 240, 300].map((seconds) => (
+            {[60, 90, 120, 180, 240, 300].map(seconds => (
               <Button
                 key={seconds}
                 size="small"
-                variant={targetTime === seconds ? "contained" : "outlined"}
+                variant={targetTime === seconds ? 'contained' : 'outlined'}
                 onClick={() => {
                   if (!isRunning) {
                     setTargetTime(seconds);
@@ -368,7 +376,7 @@ export function RestTimer({
               onClick={resetTimer}
               sx={{
                 color: 'white',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
               }}
             >
               <ResetIcon />
@@ -392,7 +400,7 @@ export function RestTimer({
               onClick={() => setIsSoundEnabled(!isSoundEnabled)}
               sx={{
                 color: 'white',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
               }}
             >
               {isSoundEnabled ? <VolumeUpIcon /> : <VolumeOffIcon />}

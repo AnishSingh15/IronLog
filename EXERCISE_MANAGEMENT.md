@@ -5,6 +5,7 @@ A comprehensive web-based exercise management system for IronLog fitness trackin
 ## Features
 
 ### ✅ Core Functionality
+
 - **Add Exercises**: Create new exercises with name, muscle group, default sets/reps
 - **Edit Exercises**: Modify existing exercise details
 - **Delete Exercises**: Remove exercises (with safety checks for used exercises)
@@ -12,6 +13,7 @@ A comprehensive web-based exercise management system for IronLog fitness trackin
 - **Responsive Design**: Works seamlessly on desktop and mobile
 
 ### ✅ User Experience
+
 - **Real-time Search**: Instant filtering as you type
 - **Animated UI**: Smooth transitions and hover effects
 - **Success/Error Feedback**: Toast notifications for all actions
@@ -19,6 +21,7 @@ A comprehensive web-based exercise management system for IronLog fitness trackin
 - **Confirmation Dialogs**: Prevents accidental deletions
 
 ### ✅ Data Safety
+
 - **Usage Protection**: Cannot delete exercises that are used in workout records
 - **Duplicate Prevention**: Prevents creating exercises with duplicate names
 - **Error Handling**: Graceful handling of API failures
@@ -26,11 +29,13 @@ A comprehensive web-based exercise management system for IronLog fitness trackin
 ## Usage
 
 ### Accessing Exercise Management
+
 1. Navigate to the **Exercises** tab in the main navigation
 2. The page is accessible to all authenticated users
 3. Future versions will include admin-only access control
 
 ### Adding New Exercises
+
 1. Click the **floating + button** in the bottom-right corner
 2. Fill in the exercise details:
    - **Name**: Exercise name (e.g., "Bench Press")
@@ -40,18 +45,21 @@ A comprehensive web-based exercise management system for IronLog fitness trackin
 3. Click **Add Exercise** to save
 
 ### Editing Exercises
+
 1. Find the exercise you want to edit
 2. Click the **edit icon** (pencil) on the exercise card
 3. Modify the details in the dialog
 4. Click **Update Exercise** to save changes
 
 ### Deleting Exercises
+
 1. Find the exercise you want to delete
 2. Click the **delete icon** (trash) on the exercise card
 3. Confirm the deletion in the popup
 4. **Note**: Exercises used in workout records cannot be deleted
 
 ### Search and Filtering
+
 - **Search Bar**: Type to search by exercise name
 - **Muscle Group Filter**: Select a specific muscle group
 - **Clear Filters**: Reset all filters to show all exercises
@@ -59,11 +67,13 @@ A comprehensive web-based exercise management system for IronLog fitness trackin
 ## Technical Implementation
 
 ### Frontend Components
+
 - **`/exercises` Page**: Main exercise management interface
 - **`useExercises` Hook**: Custom hook for exercise CRUD operations
 - **API Client**: Extended with exercise management endpoints
 
 ### Backend API Endpoints
+
 - `GET /api/v1/exercises` - List all exercises with filtering
 - `GET /api/v1/exercises/popular` - Get most used exercises
 - `GET /api/v1/exercises/:id` - Get specific exercise details
@@ -72,7 +82,9 @@ A comprehensive web-based exercise management system for IronLog fitness trackin
 - `DELETE /api/v1/exercises/:id` - Delete exercise (with safety checks)
 
 ### Database Schema
+
 The `Exercise` model includes:
+
 - `id`: Unique identifier
 - `name`: Exercise name (unique)
 - `muscleGroup`: Muscle group category
@@ -84,17 +96,20 @@ The `Exercise` model includes:
 ## Deployment Considerations
 
 ### Local Development
+
 1. Start the backend server: `npm run dev` (in `/apps/server`)
 2. Start the frontend: `npm run dev` (in `/apps/web`)
 3. Navigate to `http://localhost:3000/exercises`
 
 ### Production Deployment
+
 1. **Environment Variables**: Ensure proper API URLs are configured
 2. **Authentication**: Currently uses JWT tokens from localStorage
 3. **Database**: Prisma migrations should be run in production
 4. **Security**: Consider implementing admin-only access control
 
 ### Security Enhancements (Future)
+
 - **Role-based Access Control**: Restrict exercise management to admin users
 - **Audit Logging**: Track who creates/modifies/deletes exercises
 - **Rate Limiting**: Prevent abuse of the exercise management API
@@ -134,6 +149,7 @@ The system now provides both options:
 2. **Script-based** (Legacy): Still available at `/apps/server/src/scripts/manage-exercises.ts`
 
 ### Benefits of Web UI over Scripts:
+
 - ✅ Real-time feedback and validation
 - ✅ No need for server access or technical knowledge
 - ✅ Works in both development and production
@@ -144,6 +160,7 @@ The system now provides both options:
 ## Support
 
 For issues or feature requests related to exercise management:
+
 1. Check the browser console for error messages
 2. Verify API connectivity to the backend
 3. Ensure proper authentication tokens are present

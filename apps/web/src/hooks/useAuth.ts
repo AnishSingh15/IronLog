@@ -1,6 +1,5 @@
-import apiClient from '@/lib/api';
+import apiClient, { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
-import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -98,7 +97,7 @@ export function useAuth() {
 
   const checkAuth = async () => {
     console.log('🔐 checkAuth called');
-    
+
     // Check if we have stored tokens in localStorage
     const tokens = apiClient.getStoredTokens();
     console.log('🔐 Stored tokens check:', {
@@ -118,13 +117,13 @@ export function useAuth() {
       // Try to refresh the token to verify it's still valid
       const refreshResponse = await apiClient.refreshToken();
       console.log('🔐 Token refresh response:', refreshResponse);
-      
+
       if (refreshResponse.success) {
         console.log('🔐 Token refreshed, now getting user profile...');
         // Get user profile with the new token
-        const profileResponse = await apiClient.get('/auth/profile');
+        const profileResponse = await api.get('/auth/profile');
         console.log('🔐 Profile response:', profileResponse);
-        
+
         if (profileResponse.success && profileResponse.data) {
           setUser(profileResponse.data as any);
           console.log('🔐 Auth restored successfully');
@@ -149,18 +148,18 @@ export function useAuth() {
   // Auto-check authentication on mount
   useEffect(() => {
     let mounted = true;
-    
+
     const initAuth = async () => {
       console.log('🔐 useAuth effect triggered:', { isAuthenticated, isLoading });
-      
+
       if (!isAuthenticated && !isLoading && mounted) {
         console.log('🔐 Not authenticated and not loading, checking auth...');
         await checkAuth();
       }
     };
-    
+
     initAuth();
-    
+
     return () => {
       mounted = false;
     };

@@ -37,18 +37,9 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const MUSCLE_GROUPS = [
-  'Chest',
-  'Back',
-  'Shoulders',
-  'Arms',
-  'Legs',
-  'Core',
-  'Cardio',
-  'Full Body',
-];
+const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Cardio', 'Full Body'];
 
 const muscleGroupColors = {
   Chest: '#FF6B6B',
@@ -94,19 +85,16 @@ export default function ExercisesPage() {
   }, [isAuthenticated, router]);
 
   // Use the custom hook with filters
-  const {
-    exercises,
-    loading,
-    error,
-    createExercise,
-    updateExercise,
-    deleteExercise,
-  } = useExercises({
-    search: searchTerm,
-    muscleGroup: selectedMuscleGroup,
-  });
+  const { exercises, loading, error, createExercise, updateExercise, deleteExercise } =
+    useExercises({
+      search: searchTerm,
+      muscleGroup: selectedMuscleGroup,
+    });
 
-  const showSnackbar = (message: string, severity: 'success' | 'error' | 'info' | 'warning' = 'success') => {
+  const showSnackbar = (
+    message: string,
+    severity: 'success' | 'error' | 'info' | 'warning' = 'success'
+  ) => {
     setSnackbar({ open: true, message, severity });
   };
 
@@ -153,7 +141,7 @@ export default function ExercisesPage() {
 
     try {
       setSubmitLoading(true);
-      
+
       const result = editingExercise
         ? await updateExercise(editingExercise.id, formData)
         : await createExercise(formData);
@@ -161,7 +149,7 @@ export default function ExercisesPage() {
       if (result.success) {
         handleCloseDialog();
         showSnackbar(
-          editingExercise 
+          editingExercise
             ? `Exercise "${formData.name}" updated successfully!`
             : `Exercise "${formData.name}" added successfully!`,
           'success'
@@ -195,25 +183,27 @@ export default function ExercisesPage() {
     }
   };
 
-  const filteredExercises = exercises.filter((exercise) => {
-    const matchesSearch = !searchTerm || 
-      exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesMuscleGroup = !selectedMuscleGroup || 
-      exercise.muscleGroup === selectedMuscleGroup;
+  const filteredExercises = exercises.filter(exercise => {
+    const matchesSearch =
+      !searchTerm || exercise.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesMuscleGroup = !selectedMuscleGroup || exercise.muscleGroup === selectedMuscleGroup;
     return matchesSearch && matchesMuscleGroup;
   });
 
-  const exercisesByMuscleGroup = filteredExercises.reduce((acc, exercise) => {
-    const group = exercise.muscleGroup;
-    if (!acc[group]) acc[group] = [];
-    acc[group].push(exercise);
-    return acc;
-  }, {} as Record<string, Exercise[]>);
+  const exercisesByMuscleGroup = filteredExercises.reduce(
+    (acc, exercise) => {
+      const group = exercise.muscleGroup;
+      if (!acc[group]) acc[group] = [];
+      acc[group].push(exercise);
+      return acc;
+    },
+    {} as Record<string, Exercise[]>
+  );
 
   return (
     <>
       <AppHeader title="Exercise Manager" showWeightToggle={false} />
-      
+
       <Container maxWidth="lg" sx={{ py: 3 }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
@@ -240,22 +230,22 @@ export default function ExercisesPage() {
             <TextField
               placeholder="Search exercises..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               InputProps={{
                 startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
               }}
               sx={{ minWidth: 250 }}
             />
-            
+
             <FormControl sx={{ minWidth: 180 }}>
               <InputLabel>Muscle Group</InputLabel>
               <Select
                 value={selectedMuscleGroup}
-                onChange={(e) => setSelectedMuscleGroup(e.target.value)}
+                onChange={e => setSelectedMuscleGroup(e.target.value)}
                 label="Muscle Group"
               >
                 <MenuItem value="">All Groups</MenuItem>
-                {MUSCLE_GROUPS.map((group) => (
+                {MUSCLE_GROUPS.map(group => (
                   <MenuItem key={group} value={group}>
                     {group}
                   </MenuItem>
@@ -285,10 +275,7 @@ export default function ExercisesPage() {
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
-            <Button
-              variant="outlined"
-              onClick={() => window.location.reload()}
-            >
+            <Button variant="outlined" onClick={() => window.location.reload()}>
               Retry
             </Button>
           </Box>
@@ -305,7 +292,8 @@ export default function ExercisesPage() {
                     key={group}
                     label={`${group} (${exercises.length})`}
                     sx={{
-                      bgcolor: muscleGroupColors[group as keyof typeof muscleGroupColors] || '#E0E0E0',
+                      bgcolor:
+                        muscleGroupColors[group as keyof typeof muscleGroupColors] || '#E0E0E0',
                       color: 'white',
                       fontWeight: 500,
                     }}
@@ -327,7 +315,7 @@ export default function ExercisesPage() {
                 >
                   {muscleGroup} ({groupExercises.length})
                 </Typography>
-                
+
                 <Grid container spacing={2}>
                   {groupExercises.map((exercise, index) => (
                     <Grid item xs={12} sm={6} md={4} key={exercise.id}>
@@ -360,22 +348,25 @@ export default function ExercisesPage() {
                             >
                               {exercise.name}
                             </Typography>
-                            
+
                             <Chip
                               size="small"
                               label={exercise.muscleGroup}
                               sx={{
-                                bgcolor: muscleGroupColors[exercise.muscleGroup as keyof typeof muscleGroupColors] || '#E0E0E0',
+                                bgcolor:
+                                  muscleGroupColors[
+                                    exercise.muscleGroup as keyof typeof muscleGroupColors
+                                  ] || '#E0E0E0',
                                 color: 'white',
                                 mb: 2,
                               }}
                             />
-                            
+
                             <Typography variant="body2" color="text.secondary">
                               Default: {exercise.defaultSets} sets × {exercise.defaultReps} reps
                             </Typography>
                           </CardContent>
-                          
+
                           <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
                             <IconButton
                               size="small"
@@ -447,62 +438,62 @@ export default function ExercisesPage() {
             },
           }}
         >
-          <DialogTitle>
-            {editingExercise ? 'Edit Exercise' : 'Add New Exercise'}
-          </DialogTitle>
-          
+          <DialogTitle>{editingExercise ? 'Edit Exercise' : 'Add New Exercise'}</DialogTitle>
+
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
               <TextField
                 label="Exercise Name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
                 fullWidth
                 required
                 placeholder="e.g., Bench Press, Squats, etc."
               />
-              
+
               <FormControl fullWidth required>
                 <InputLabel>Muscle Group</InputLabel>
                 <Select
                   value={formData.muscleGroup}
-                  onChange={(e) => setFormData({ ...formData, muscleGroup: e.target.value })}
+                  onChange={e => setFormData({ ...formData, muscleGroup: e.target.value })}
                   label="Muscle Group"
                 >
-                  {MUSCLE_GROUPS.map((group) => (
+                  {MUSCLE_GROUPS.map(group => (
                     <MenuItem key={group} value={group}>
                       {group}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-              
+
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField
                   label="Default Sets"
                   type="number"
                   value={formData.defaultSets}
-                  onChange={(e) => setFormData({ ...formData, defaultSets: parseInt(e.target.value) || 1 })}
+                  onChange={e =>
+                    setFormData({ ...formData, defaultSets: parseInt(e.target.value) || 1 })
+                  }
                   inputProps={{ min: 1, max: 10 }}
                   fullWidth
                 />
-                
+
                 <TextField
                   label="Default Reps"
                   type="number"
                   value={formData.defaultReps}
-                  onChange={(e) => setFormData({ ...formData, defaultReps: parseInt(e.target.value) || 1 })}
+                  onChange={e =>
+                    setFormData({ ...formData, defaultReps: parseInt(e.target.value) || 1 })
+                  }
                   inputProps={{ min: 1, max: 100 }}
                   fullWidth
                 />
               </Box>
             </Box>
           </DialogContent>
-          
+
           <DialogActions sx={{ p: 3, pt: 1 }}>
-            <Button onClick={handleCloseDialog}>
-              Cancel
-            </Button>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
             <Button
               onClick={handleSubmit}
               variant="contained"
@@ -516,8 +507,10 @@ export default function ExercisesPage() {
             >
               {submitLoading ? (
                 <CircularProgress size={24} color="inherit" />
+              ) : editingExercise ? (
+                'Update Exercise'
               ) : (
-                editingExercise ? 'Update Exercise' : 'Add Exercise'
+                'Add Exercise'
               )}
             </Button>
           </DialogActions>
@@ -530,11 +523,7 @@ export default function ExercisesPage() {
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={snackbar.severity}
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
             {snackbar.message}
           </Alert>
         </Snackbar>

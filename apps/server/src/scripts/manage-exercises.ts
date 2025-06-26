@@ -11,22 +11,22 @@ const EXERCISES_TO_ADD = [
   { name: 'Push-ups', muscleGroup: 'Chest', defaultSets: 3, defaultReps: 15 },
   { name: 'Chest Dips', muscleGroup: 'Chest', defaultSets: 3, defaultReps: 12 },
   { name: 'Decline Bench Press', muscleGroup: 'Chest', defaultSets: 3, defaultReps: 10 },
-  
+
   // Back
   { name: 'Barbell Rows', muscleGroup: 'Back', defaultSets: 4, defaultReps: 8 },
   { name: 'T-Bar Rows', muscleGroup: 'Back', defaultSets: 3, defaultReps: 10 },
   { name: 'Face Pulls', muscleGroup: 'Back', defaultSets: 3, defaultReps: 15 },
-  
+
   // Legs
   { name: 'Romanian Deadlifts', muscleGroup: 'Legs', defaultSets: 3, defaultReps: 10 },
   { name: 'Bulgarian Split Squats', muscleGroup: 'Legs', defaultSets: 3, defaultReps: 12 },
   { name: 'Calf Raises', muscleGroup: 'Legs', defaultSets: 4, defaultReps: 20 },
-  
+
   // Shoulders
   { name: 'Upright Rows', muscleGroup: 'Shoulders', defaultSets: 3, defaultReps: 12 },
   { name: 'Front Raises', muscleGroup: 'Shoulders', defaultSets: 3, defaultReps: 12 },
   { name: 'Arnold Press', muscleGroup: 'Shoulders', defaultSets: 3, defaultReps: 10 },
-  
+
   // Arms
   { name: 'Preacher Curls', muscleGroup: 'Biceps', defaultSets: 3, defaultReps: 10 },
   { name: 'Concentration Curls', muscleGroup: 'Biceps', defaultSets: 3, defaultReps: 12 },
@@ -48,7 +48,7 @@ async function manageExercises() {
     // ➕ ADD NEW EXERCISES
     if (EXERCISES_TO_ADD.length > 0) {
       console.log(`\n➕ Adding ${EXERCISES_TO_ADD.length} new exercises...`);
-      
+
       for (const exercise of EXERCISES_TO_ADD) {
         // Check if exercise already exists
         const existing = await prisma.exercise.findUnique({
@@ -69,7 +69,7 @@ async function manageExercises() {
     // ➖ REMOVE EXERCISES
     if (EXERCISES_TO_REMOVE.length > 0) {
       console.log(`\n➖ Removing ${EXERCISES_TO_REMOVE.length} exercises...`);
-      
+
       for (const exerciseName of EXERCISES_TO_REMOVE) {
         // Check if exercise exists
         const existing = await prisma.exercise.findUnique({

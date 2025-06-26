@@ -18,9 +18,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const initializeAuth = async () => {
       if (authInitialized) return; // Prevent multiple initializations
-      
+
       console.log('🔐 Initializing authentication...');
-      
+
       try {
         await checkAuth();
         console.log('🔐 Auth initialization complete');
@@ -43,15 +43,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Show loading state during auth initialization
   if (!authInitialized) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        fontSize: '18px',
-        fontWeight: 'bold',
-        color: '#F46036'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          fontSize: '18px',
+          fontWeight: 'bold',
+          color: '#F46036',
+        }}
+      >
         🏋️ Loading IronLog...
       </div>
     );

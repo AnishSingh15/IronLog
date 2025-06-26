@@ -301,11 +301,14 @@ export class ApiClient {
   }
 
   // Exercise management endpoints
-  async getExercises(params?: { muscleGroup?: string; search?: string }): Promise<ApiResponse<any>> {
+  async getExercises(params?: {
+    muscleGroup?: string;
+    search?: string;
+  }): Promise<ApiResponse<any>> {
     const searchParams = new URLSearchParams();
     if (params?.muscleGroup) searchParams.append('muscleGroup', params.muscleGroup);
     if (params?.search) searchParams.append('search', params.search);
-    
+
     const endpoint = `/exercises${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
     return this.get(endpoint);
   }
@@ -327,12 +330,15 @@ export class ApiClient {
     return this.post('/exercises', exercise);
   }
 
-  async updateExercise(id: string, exercise: {
-    name?: string;
-    muscleGroup?: string;
-    defaultSets?: number;
-    defaultReps?: number;
-  }): Promise<ApiResponse<any>> {
+  async updateExercise(
+    id: string,
+    exercise: {
+      name?: string;
+      muscleGroup?: string;
+      defaultSets?: number;
+      defaultReps?: number;
+    }
+  ): Promise<ApiResponse<any>> {
     return this.put(`/exercises/${id}`, exercise);
   }
 
@@ -437,11 +443,19 @@ export const apiClient = {
     return api.getExercise(id);
   },
 
-  async createExercise(exercise: { name: string; muscleGroup: string; defaultSets?: number; defaultReps?: number }) {
+  async createExercise(exercise: {
+    name: string;
+    muscleGroup: string;
+    defaultSets?: number;
+    defaultReps?: number;
+  }) {
     return api.createExercise(exercise);
   },
 
-  async updateExercise(id: string, exercise: { name?: string; muscleGroup?: string; defaultSets?: number; defaultReps?: number }) {
+  async updateExercise(
+    id: string,
+    exercise: { name?: string; muscleGroup?: string; defaultSets?: number; defaultReps?: number }
+  ) {
     return api.updateExercise(id, exercise);
   },
 

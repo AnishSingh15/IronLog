@@ -1,10 +1,9 @@
 'use client';
 
 import { AppHeader } from '@/components/AppHeader';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { WeightDisplay } from '@/components/WeightComponents';
 import { useWeightUnit } from '@/contexts/WeightUnitContext';
-import apiClient, { api } from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import {
   ArrowBack as ArrowBackIcon,
@@ -23,17 +22,10 @@ import {
   CardContent,
   Chip,
   Container,
-  Divider,
   Grid,
   IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Paper,
   Skeleton,
-  Toolbar,
   Tooltip,
   Typography,
   useMediaQuery,
@@ -163,9 +155,7 @@ export default function HistoryPage() {
       const startDate = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
       const endDate = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
 
-      const response = await api.get(
-        `/workouts/history?startDate=${startDate}&endDate=${endDate}`
-      );
+      const response = await api.get(`/workouts/history?startDate=${startDate}&endDate=${endDate}`);
       setWorkoutDays((response.data as any)?.data || response.data);
     } catch (error: any) {
       console.error('Failed to load workout history:', error);
@@ -560,7 +550,8 @@ export default function HistoryPage() {
                           </Typography>
                           {set.plannedWeight !== null && set.plannedReps !== null && (
                             <Typography variant="caption" color="text.secondary" display="block">
-                              Planned: <WeightDisplay weight={set.plannedWeight!} /> × {set.plannedReps} reps
+                              Planned: <WeightDisplay weight={set.plannedWeight!} /> ×{' '}
+                              {set.plannedReps} reps
                             </Typography>
                           )}
                         </Box>

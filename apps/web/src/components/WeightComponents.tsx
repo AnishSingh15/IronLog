@@ -2,7 +2,6 @@
 
 import { useWeightUnit } from '@/contexts/WeightUnitContext';
 import { TextField, TextFieldProps } from '@mui/material';
-import React from 'react';
 
 interface WeightInputProps extends Omit<TextFieldProps, 'label'> {
   customLabel?: string;
@@ -10,16 +9,10 @@ interface WeightInputProps extends Omit<TextFieldProps, 'label'> {
 
 export function WeightInput({ customLabel, ...props }: WeightInputProps) {
   const { getWeightUnit } = useWeightUnit();
-  
+
   const label = customLabel || `Weight (${getWeightUnit()})`;
 
-  return (
-    <TextField
-      {...props}
-      label={label}
-      type="number"
-    />
-  );
+  return <TextField {...props} label={label} type="number" />;
 }
 
 interface WeightDisplayProps {
@@ -32,7 +25,11 @@ export function WeightDisplay({ weight, showConversion = true, className }: Weig
   const { formatWeightDisplay, useMetricSystem, getWeightUnit } = useWeightUnit();
 
   if (!showConversion) {
-    return <span className={className}>{weight} {getWeightUnit()}</span>;
+    return (
+      <span className={className}>
+        {weight} {getWeightUnit()}
+      </span>
+    );
   }
 
   return <span className={className}>{formatWeightDisplay(weight)}</span>;

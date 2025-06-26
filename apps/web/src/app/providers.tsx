@@ -226,9 +226,7 @@ export function Providers({ children }: ProvidersProps) {
     <WeightUnitProvider>
       <ThemeProvider>
         <MuiThemeWrapper>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </MuiThemeWrapper>
       </ThemeProvider>
     </WeightUnitProvider>
