@@ -1,14 +1,17 @@
 'use client';
 
+import { AppHeader } from '@/components/AppHeader';
+import { RestTimer } from '@/components/RestTimer';
+import { useWeightUnit } from '@/contexts/WeightUnitContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useTimer } from '@/hooks/useTimer';
-import apiClient from '@/lib/api';
-import { formatWeight } from '@/lib/weight';
+import apiClient, { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { useTimerStore } from '@/store/timer';
 import { useWorkoutStore } from '@/store/workout';
 import {
   Check as CheckIcon,
+  Delete as DeleteIcon,
   ExpandMore as ExpandMoreIcon,
   FitnessCenter as FitnessCenterIcon,
   History as HistoryIcon,
@@ -18,6 +21,7 @@ import {
   Person as PersonIcon,
   PlayArrow as PlayIcon,
   TrendingUp as ProgressIcon,
+  Scale as ScaleIcon,
   Timer as TimerIcon,
 } from '@mui/icons-material';
 import {
@@ -115,7 +119,14 @@ export default function DashboardPage() {
   const [customSets, setCustomSets] = useState<Record<string, number>>({});
   const [isLoadingExercises, setIsLoadingExercises] = useState(false);
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
+  const [showRestTimer, setShowRestTimer] = useState(false);
+  const [restTimerFor, setRestTimerFor] = useState<string | null>(null);
+  const [restTimerDefaultTime, setRestTimerDefaultTime] = useState(180); // 3 minutes default, but configurable
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  // Weight unit context
+  const { useMetricSystem, toggleWeightUnit, formatWeightDisplay, getWeightUnit } = useWeightUnit();
 
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -125,8 +136,13 @@ export default function DashboardPage() {
       return;
     }
 
-    loadTodaysWorkout();
-    loadExercises();
+    // Load data sequentially to avoid race conditions
+    const loadData = async () => {
+      await loadTodaysWorkout();
+      await loadExercises();
+    };
+
+    loadData();
   }, [isAuthenticated, router]);
 
   const loadTodaysWorkout = async () => {
@@ -135,20 +151,24 @@ export default function DashboardPage() {
       setError(null);
       setIsRestDay(false);
 
-      const response = await apiClient.get('/workouts/today');
+      const response = await api.get('/workouts/today');
 
-      // Handle empty response (rest day)
+      // Handle empty response (no workout today - let user choose)
       if (!response.success || !response.data) {
-        setIsRestDay(true);
+        setIsRestDay(false); // Don't automatically set rest day
         setCurrentWorkout(null);
         setCompletionPercentage(0);
-        setSplitName('Rest Day');
+        setSplitName(''); // Empty split name to show choice
         setSetInputs({});
         return;
       }
 
       const responseData = response.data as any;
-      const { workoutDay, completionPercentage: completion, splitName: split } = responseData.data || responseData;
+      const {
+        workoutDay,
+        completionPercentage: completion,
+        splitName: split,
+      } = responseData.data || responseData;
 
       setCurrentWorkout(workoutDay);
       setCompletionPercentage(completion);
@@ -156,21 +176,25 @@ export default function DashboardPage() {
 
       // Initialize set inputs for incomplete sets
       const inputs: Record<string, SetInputs> = {};
-      workoutDay.setRecords.forEach((set: any) => {
-        if (!set.actualWeight || !set.actualReps) {
-          inputs[set.id] = { weight: '', reps: '' };
-        }
-      });
+      if (workoutDay.setRecords) {
+        workoutDay.setRecords.forEach((set: any) => {
+          if (!set.actualWeight || !set.actualReps) {
+            inputs[set.id] = { weight: '', reps: '' };
+          }
+        });
+      }
       setSetInputs(inputs);
     } catch (error: any) {
-      // Handle expected 404 (no workout for today) - don't auto-show modal
+      // Handle expected 404 (no workout for today) - let user choose
       if (error.response?.status === 404) {
-        // No workout for today - set state but don't auto-show modal
+        // No workout for today - let user choose between workout and rest
         setCurrentWorkout(null);
+        setIsRestDay(false);
         setCompletionPercentage(0);
         setSplitName('');
         setSetInputs({});
       } else if (error.response?.status === 204) {
+        // Explicit rest day from server
         setIsRestDay(true);
         setCurrentWorkout(null);
         setCompletionPercentage(0);
@@ -186,16 +210,67 @@ export default function DashboardPage() {
     }
   };
 
+  const confirmDeleteWorkout = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const deleteWorkout = async () => {
+    if (!currentWorkout) return;
+
+    try {
+      setWorkoutLoading(true);
+      setError(null);
+      setShowDeleteDialog(false);
+
+      const response = await api.delete(`/workouts/${currentWorkout.id}`);
+
+      if (response.success) {
+        // Reset to initial state - show choice between workout and rest day
+        setCurrentWorkout(null);
+        setIsRestDay(false);
+        setCompletionPercentage(0);
+        setSplitName('');
+        setSetInputs({});
+        setExpandedExercise(false);
+      } else {
+        setError('Failed to delete workout. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Failed to delete workout:', error);
+      setError('Failed to delete workout. Please try again.');
+    } finally {
+      setWorkoutLoading(false);
+    }
+  };
+
   // Load available exercises
   const loadExercises = async () => {
     try {
       setIsLoadingExercises(true);
-      const response = await apiClient.get('/exercises');
-      const responseData = response.data as any;
-      setAvailableExercises(responseData.data?.exercisesByMuscleGroup || responseData.exercisesByMuscleGroup);
+      const response = await api.get('/exercises');
+      
+      // Check if response is successful and has data
+      if (response.success && response.data) {
+        const responseData = response.data as any;
+        
+        // Handle the nested data structure properly
+        if (responseData.exercisesByMuscleGroup) {
+          setAvailableExercises(responseData.exercisesByMuscleGroup);
+        } else if (responseData.data?.exercisesByMuscleGroup) {
+          setAvailableExercises(responseData.data.exercisesByMuscleGroup);
+        } else {
+          console.warn('No exercisesByMuscleGroup found in response');
+          setAvailableExercises({});
+        }
+      } else {
+        console.error('Failed to load exercises - invalid response:', response);
+        setError(`Failed to load exercises: ${response.error?.message || 'Unknown error'}`);
+        setAvailableExercises({});
+      }
     } catch (error) {
       console.error('Failed to load exercises:', error);
       setError('Failed to load exercises. Please try again.');
+      setAvailableExercises({});
     } finally {
       setIsLoadingExercises(false);
     }
@@ -206,9 +281,13 @@ export default function DashboardPage() {
       setIsStartingWorkout(true);
       setError(null);
 
-      const response = await apiClient.post('/workouts/start', { splitKey });
+      const response = await api.post('/workouts/start', { splitKey });
       const responseData = response.data as any;
-      const { workoutDay, completionPercentage: completion, splitName: split } = responseData.data || responseData;
+      const {
+        workoutDay,
+        completionPercentage: completion,
+        splitName: split,
+      } = responseData.data || responseData;
 
       setCurrentWorkout(workoutDay);
       setCompletionPercentage(completion);
@@ -216,11 +295,13 @@ export default function DashboardPage() {
 
       // Initialize set inputs for incomplete sets
       const inputs: Record<string, SetInputs> = {};
-      workoutDay.setRecords.forEach((set: any) => {
-        if (!set.actualWeight || !set.actualReps) {
-          inputs[set.id] = { weight: '', reps: '' };
-        }
-      });
+      if (workoutDay.setRecords) {
+        workoutDay.setRecords.forEach((set: any) => {
+          if (!set.actualWeight || !set.actualReps) {
+            inputs[set.id] = { weight: '', reps: '' };
+          }
+        });
+      }
       setSetInputs(inputs);
       setShowWorkoutModal(false);
     } catch (error: any) {
@@ -242,13 +323,17 @@ export default function DashboardPage() {
       setIsStartingWorkout(true);
       setError(null);
 
-      const response = await apiClient.post('/workouts/custom', {
+      const response = await api.post('/workouts/custom', {
         exerciseIds: selectedExercises,
         customSets: Object.keys(customSets).length > 0 ? customSets : undefined,
       });
 
       const responseData = response.data as any;
-      const { workoutDay, completionPercentage: completion, splitName: split } = responseData.data || responseData;
+      const {
+        workoutDay,
+        completionPercentage: completion,
+        splitName: split,
+      } = responseData.data || responseData;
 
       setCurrentWorkout(workoutDay);
       setCompletionPercentage(completion);
@@ -256,11 +341,13 @@ export default function DashboardPage() {
 
       // Initialize set inputs for incomplete sets
       const inputs: Record<string, SetInputs> = {};
-      workoutDay.setRecords.forEach((set: any) => {
-        if (!set.actualWeight || !set.actualReps) {
-          inputs[set.id] = { weight: '', reps: '' };
-        }
-      });
+      if (workoutDay.setRecords) {
+        workoutDay.setRecords.forEach((set: any) => {
+          if (!set.actualWeight || !set.actualReps) {
+            inputs[set.id] = { weight: '', reps: '' };
+          }
+        });
+      }
       setSetInputs(inputs);
       setShowWorkoutModal(false);
       setSelectedExercises([]);
@@ -328,13 +415,13 @@ export default function DashboardPage() {
 
       setError(null);
 
-      await apiClient.patch(`/set-records/${setId}`, {
+      await api.patch(`/set-records/${setId}`, {
         actualWeight: weightValue,
         actualReps: repsValue,
       });
 
       // Find the set record to update
-      const currentSetRecord = currentWorkout?.setRecords.find(set => set.id === setId);
+      const currentSetRecord = currentWorkout?.setRecords?.find(set => set.id === setId);
       if (currentSetRecord) {
         const updatedSetRecord = {
           ...currentSetRecord,
@@ -353,8 +440,12 @@ export default function DashboardPage() {
         return newInputs;
       });
 
+      // Show rest timer after completing a set
+      setRestTimerFor(setId);
+      setShowRestTimer(true);
+
       // Update completion percentage and auto-complete if all sets done
-      if (currentWorkout) {
+      if (currentWorkout && currentWorkout.setRecords) {
         const totalSets = currentWorkout.setRecords.length;
         const completedSets = currentWorkout.setRecords.filter(
           set => set.id === setId || (set.actualWeight !== null && set.actualReps !== null)
@@ -379,7 +470,7 @@ export default function DashboardPage() {
     if (!currentWorkout) return;
 
     try {
-      await apiClient.patch(`/workouts/${currentWorkout.id}/complete`);
+      await api.patch(`/workouts/${currentWorkout.id}/complete`);
       setError(null);
       // Reload the workout to reflect completion
       loadTodaysWorkout();
@@ -390,7 +481,7 @@ export default function DashboardPage() {
   };
 
   const handleMarkAllDone = async () => {
-    if (!currentWorkout) return;
+    if (!currentWorkout || !currentWorkout.setRecords) return;
 
     try {
       setError(null);
@@ -405,7 +496,7 @@ export default function DashboardPage() {
         const defaultWeight = set.plannedWeight || 0;
         const defaultReps = set.plannedReps || set.exercise.defaultReps;
 
-        await apiClient.patch(`/set-records/${set.id}`, {
+        await api.patch(`/set-records/${set.id}`, {
           actualWeight: defaultWeight,
           actualReps: defaultReps,
         });
@@ -458,6 +549,16 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
+  const handleRestTimerEnd = () => {
+    // Timer finished, we can keep it visible or hide it
+    console.log('Rest timer finished! 💪');
+  };
+
+  const handleCloseRestTimer = () => {
+    setShowRestTimer(false);
+    setRestTimerFor(null);
+  };
+
   const renderTimerFab = () => {
     if (!currentSet) return null;
 
@@ -503,7 +604,7 @@ export default function DashboardPage() {
   };
 
   const renderWorkoutSummary = () => {
-    if (!currentWorkout) return null;
+    if (!currentWorkout || !currentWorkout.setRecords) return null;
 
     const totalSets = currentWorkout.setRecords.length;
     const completedSets = currentWorkout.setRecords.filter(
@@ -542,15 +643,30 @@ export default function DashboardPage() {
                 <FitnessCenterIcon sx={{ color: '#F46036' }} />
                 Today's Workout
               </Typography>
-              <Chip
-                label={splitName}
-                sx={{
-                  background: 'linear-gradient(135deg, #3D9970 0%, #A3B18A 100%)',
-                  color: '#EFE9E7',
-                  fontWeight: 'bold',
-                  border: 'none',
-                }}
-              />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  label={splitName}
+                  sx={{
+                    background: 'linear-gradient(135deg, #3D9970 0%, #A3B18A 100%)',
+                    color: '#EFE9E7',
+                    fontWeight: 'bold',
+                    border: 'none',
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={confirmDeleteWorkout}
+                  sx={{
+                    color: 'error.main',
+                    '&:hover': {
+                      backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                    },
+                  }}
+                  title="Delete Workout"
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
             </Box>
 
             <Box sx={{ mb: 2 }}>
@@ -650,13 +766,13 @@ export default function DashboardPage() {
                   onClick={async () => {
                     try {
                       // Unmark the workout as completed to allow adding more sets
-                      await apiClient.patch(`/workouts/${currentWorkout.id}/uncomplete`);
-                      
+                      await api.patch(`/workouts/${currentWorkout.id}/uncomplete`);
+
                       // Refresh the workout data
-                      const updatedWorkout = await apiClient.getTodayWorkout();
+                      const updatedWorkout = await api.getTodayWorkout();
                       const updatedData = updatedWorkout.data as any;
                       setCurrentWorkout(updatedData.data || updatedData);
-                      
+
                       console.log('✅ Workout session restarted');
                     } catch (error) {
                       console.error('❌ Failed to restart workout:', error);
@@ -688,7 +804,7 @@ export default function DashboardPage() {
   };
 
   const renderExercises = () => {
-    if (!currentWorkout) return null;
+    if (!currentWorkout || !currentWorkout.setRecords) return null;
 
     // Group sets by exercise
     const exerciseGroups = currentWorkout.setRecords.reduce((acc: any, set: any) => {
@@ -813,18 +929,30 @@ export default function DashboardPage() {
                         {set.actualWeight !== null && set.actualReps !== null ? (
                           <Box>
                             <Typography variant="body1">
-                              <strong>{formatWeight(set.actualWeight)}</strong> ×{' '}
+                              <strong>{formatWeightDisplay(set.actualWeight)}</strong> ×{' '}
                               <strong>{set.actualReps} reps</strong>
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                               Target: {set.plannedReps} reps
                             </Typography>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<TimerIcon />}
+                              onClick={() => {
+                                setRestTimerFor(set.id);
+                                setShowRestTimer(true);
+                              }}
+                              sx={{ mt: 1 }}
+                            >
+                              Rest Timer
+                            </Button>
                           </Box>
                         ) : (
                           <Grid container spacing={2} alignItems="center">
                             <Grid item xs={4}>
                               <TextField
-                                label="Weight (kg)"
+                                label={`Weight (${getWeightUnit()})`}
                                 type="number"
                                 value={setInputs[set.id]?.weight || ''}
                                 onChange={e =>
@@ -856,6 +984,20 @@ export default function DashboardPage() {
                                 sx={{ width: '100%' }}
                               >
                                 Log Set
+                              </Button>
+                            </Grid>
+                            <Grid item xs={12}>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                startIcon={<TimerIcon />}
+                                onClick={() => {
+                                  setRestTimerFor(set.id);
+                                  setShowRestTimer(true);
+                                }}
+                                sx={{ width: '100%', mt: 1 }}
+                              >
+                                Start Rest Timer
                               </Button>
                             </Grid>
                           </Grid>
@@ -967,7 +1109,7 @@ export default function DashboardPage() {
         <ListItem disablePadding>
           <ListItemButton
             onClick={() => {
-              handleProfileMenuOpen;
+              // Profile menu functionality would go here
               setDrawerOpen(false);
             }}
             sx={{
@@ -1018,6 +1160,30 @@ export default function DashboardPage() {
             <ListItemText primary="Logout" />
           </ListItemButton>
         </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => {
+              toggleWeightUnit();
+              setDrawerOpen(false);
+            }}
+            sx={{
+              borderRadius: 2,
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
+            }}
+          >
+            <ListItemIcon>
+              <ScaleIcon sx={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText
+              primary={`Switch to ${useMetricSystem ? 'Pounds' : 'Kilograms'}`}
+              secondary={`Currently: ${useMetricSystem ? 'kg' : 'lbs'}`}
+              secondaryTypographyProps={{
+                sx: { color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem' },
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
       </List>
     </Drawer>
   );
@@ -1027,126 +1193,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
-      {/* Enhanced Header with Gradient */}
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{
-          background: 'linear-gradient(135deg, #F46036 0%, #E66CB2 100%)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: 'none',
-          boxShadow: '0 8px 32px rgba(244, 96, 54, 0.15)',
-        }}
-      >
-        <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-            <FitnessCenterIcon sx={{ color: '#EFE9E7', fontSize: 28 }} />
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                fontWeight: 'bold',
-                color: '#EFE9E7',
-                textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              }}
-            >
-              IronLog
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {/* Desktop Navigation - Hidden on mobile */}
-            {!isMobile && (
-              <>
-                <Button
-                  color="inherit"
-                  onClick={() => router.push('/history')}
-                  sx={{
-                    color: '#EFE9E7',
-                    fontWeight: 500,
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-                  }}
-                >
-                  History
-                </Button>
-                <Button
-                  color="inherit"
-                  onClick={() => router.push('/progress')}
-                  sx={{
-                    color: '#EFE9E7',
-                    fontWeight: 500,
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-                  }}
-                >
-                  Progress
-                </Button>
-                {!currentWorkout && !isRestDay && (
-                  <Button
-                    variant="contained"
-                    onClick={() => setShowWorkoutModal(true)}
-                    sx={{
-                      bgcolor: 'rgba(255,255,255,0.2)',
-                      '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
-                      border: '1px solid rgba(255,255,255,0.3)',
-                      color: 'white',
-                      fontWeight: 'bold',
-                    }}
-                    startIcon={<FitnessCenterIcon />}
-                  >
-                    Start Workout
-                  </Button>
-                )}
-                <IconButton onClick={handleProfileMenuOpen}>
-                  <Avatar
-                    sx={{
-                      bgcolor: '#EFE9E7',
-                      color: '#F46036',
-                      fontWeight: 600,
-                      border: '2px solid rgba(239, 233, 231, 0.3)',
-                    }}
-                  >
-                    {user?.email?.[0]?.toUpperCase() || 'U'}
-                  </Avatar>
-                </IconButton>
-              </>
-            )}
-
-            {/* Mobile Navigation - Drawer trigger */}
-            {isMobile && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                onClick={() => setDrawerOpen(true)}
-                sx={{
-                  color: '#EFE9E7',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-                }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-          </Box>
-          <Menu
-            anchorEl={profileMenuAnchor}
-            open={Boolean(profileMenuAnchor)}
-            onClose={handleProfileMenuClose}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          >
-            <MenuItem onClick={handleProfileMenuClose}>
-              <PersonIcon sx={{ mr: 1 }} />
-              Profile
-            </MenuItem>
-            <MenuItem onClick={handleLogout} data-testid="logout-menu-item">
-              <LogoutIcon sx={{ mr: 1 }} />
-              Logout
-            </MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="lg" sx={{ py: 3, pb: 12 }}>
+    <>
+      <AppHeader title="Dashboard" />
+      <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+        <Container maxWidth="lg" sx={{ py: 3, pb: 12 }}>
         <motion.div initial="initial" animate="animate" variants={staggerContainer}>
           {error && (
             <motion.div variants={fadeInUp}>
@@ -1394,6 +1444,89 @@ export default function DashboardPage() {
 
       {/* Navigation Drawer for Mobile */}
       {isMobile && renderNavigationDrawer()}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">Delete Workout?</DialogTitle>
+        <DialogContent>
+          <Typography id="delete-dialog-description">
+            Are you sure you want to delete this workout? This action cannot be undone. You'll
+            return to the main screen where you can choose to start a new workout or take a rest
+            day.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowDeleteDialog(false)} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={deleteWorkout} color="error" variant="contained">
+            Delete Workout
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Rest Timer */}
+      <RestTimer
+        isVisible={showRestTimer}
+        onTimerEnd={handleRestTimerEnd}
+        defaultTime={restTimerDefaultTime}
+        onClose={handleCloseRestTimer}
+      />
+
+      {/* Rest Timer Overlay */}
+      {showRestTimer && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            p: 2,
+          }}
+          onClick={handleCloseRestTimer}
+        >
+          <Box onClick={e => e.stopPropagation()}>
+            <RestTimer
+              isVisible={showRestTimer}
+              onTimerEnd={handleRestTimerEnd}
+              onClose={handleCloseRestTimer}
+              defaultTime={180} // 3 minutes default
+            />
+          </Box>
+        </Box>
+      )}
+
+      {/* Quick Rest Timer FAB */}
+      {currentWorkout && !showRestTimer && (
+        <Fab
+          color="primary"
+          aria-label="rest timer"
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 1000,
+          }}
+          onClick={() => {
+            setRestTimerFor('quick-timer');
+            setShowRestTimer(true);
+          }}
+        >
+          <TimerIcon />
+        </Fab>
+      )}
     </Box>
+    </>
   );
 }

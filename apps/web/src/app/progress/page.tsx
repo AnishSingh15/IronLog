@@ -1,41 +1,29 @@
 'use client';
 
+import { AppHeader } from '@/components/AppHeader';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { WeightDisplay } from '@/components/WeightComponents';
+import { useWeightUnit } from '@/contexts/WeightUnitContext';
 import { useAuth } from '@/hooks/useAuth';
-import apiClient from '@/lib/api';
+import apiClient, { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import {
   BarChart as BarChartIcon,
-  Dashboard as DashboardIcon,
   FilterList as FilterIcon,
-  History as HistoryIcon,
-  ExitToApp as LogoutIcon,
-  Menu as MenuIcon,
-  Person as PersonIcon,
   Sort as SortIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import {
   Alert,
-  AppBar,
-  Avatar,
   Box,
   Button,
   Card,
   CardContent,
   Chip,
   Container,
-  Divider,
-  Drawer,
   FormControl,
   Grid,
-  IconButton,
   InputLabel,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   Menu,
   MenuItem,
   Paper,
@@ -47,7 +35,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Toolbar,
   Typography,
   useMediaQuery,
   useTheme,
@@ -123,14 +110,13 @@ export default function ProgressPage() {
   const theme = useTheme();
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
+  const { useMetricSystem } = useWeightUnit();
 
   const [setRecords, setSetRecords] = useState<SetRecord[]>([]);
   const [exerciseStats, setExerciseStats] = useState<ExerciseStats[]>([]);
   const [volumeData, setVolumeData] = useState<VolumeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -156,7 +142,7 @@ export default function ProgressPage() {
       setError(null);
 
       // Get all set records
-      const response = await apiClient.get('/set-records');
+      const response = await api.get('/set-records');
       const responseData = response.data as any;
       const records: SetRecord[] = (responseData.data || responseData).filter(
         (record: SetRecord) => record.actualWeight && record.actualReps
@@ -295,20 +281,6 @@ export default function ProgressPage() {
       return sortOrder === 'desc' ? bValue - aValue : aValue - bValue;
     });
 
-  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget);
-  };
-
-  const handleProfileMenuClose = () => {
-    setProfileMenuAnchor(null);
-  };
-
-  const handleLogout = () => {
-    handleProfileMenuClose();
-    logout();
-    router.push('/login');
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -325,82 +297,6 @@ export default function ProgressPage() {
 
   const chartColors = ['#F46036', '#3D9970', '#A3B18A', '#9C6644', '#E66CB2'];
 
-  // Render navigation drawer
-  const renderNavigationDrawer = () => (
-    <Drawer
-      anchor="right"
-      open={drawerOpen}
-      onClose={() => setDrawerOpen(false)}
-      PaperProps={{
-        sx: {
-          width: 280,
-          background:
-            theme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, #424242 0%, #616161 100%)'
-              : 'linear-gradient(135deg, #E66CB2 0%, #F46036 100%)',
-          color: theme.palette.mode === 'dark' ? '#fff' : 'white',
-          boxShadow: theme.shadows[16],
-        },
-      }}
-    >
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, textAlign: 'center' }}>
-          📈 Progress Tracker
-        </Typography>
-        <Divider sx={{ bgcolor: 'rgba(255,255,255,0.3)', mb: 2 }} />
-      </Box>
-
-      <List sx={{ px: 1 }}>
-        <ListItem disablePadding>
-          <ListItemButton
-            onClick={() => {
-              router.push('/dashboard');
-              setDrawerOpen(false);
-            }}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-            }}
-          >
-            <ListItemIcon>
-              <DashboardIcon sx={{ color: 'white' }} />
-            </ListItemIcon>
-            <ListItemText primary="Dashboard" />
-          </ListItemButton>
-        </ListItem>
-
-        <ListItem disablePadding>
-          <ListItemButton
-            onClick={() => {
-              router.push('/history');
-              setDrawerOpen(false);
-            }}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-            }}
-          >
-            <ListItemIcon>
-              <HistoryIcon sx={{ color: 'white' }} />
-            </ListItemIcon>
-            <ListItemText primary="Workout History" />
-          </ListItemButton>
-        </ListItem>
-      </List>
-
-      <Box sx={{ flexGrow: 1 }} />
-
-      <Box sx={{ p: 2, textAlign: 'center' }}>
-        <ThemeToggle />
-        <Typography variant="caption" sx={{ display: 'block', mt: 1, opacity: 0.7 }}>
-          Toggle Dark/Light Mode
-        </Typography>
-      </Box>
-    </Drawer>
-  );
-
   if (!isAuthenticated) {
     return null;
   }
@@ -408,100 +304,7 @@ export default function ProgressPage() {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       {/* Header */}
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{
-          background: 'linear-gradient(135deg, #F46036 0%, #E66CB2 100%)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: 'none',
-          boxShadow: '0 8px 32px rgba(244, 96, 54, 0.15)',
-        }}
-      >
-        <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-            <TrendingUpIcon sx={{ color: '#EFE9E7', fontSize: 28 }} />
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                fontWeight: 'bold',
-                color: '#EFE9E7',
-                textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              }}
-            >
-              Progress Tracker
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* Desktop Navigation - Hidden on mobile */}
-            {!isMobile && (
-              <>
-                <Button
-                  color="inherit"
-                  onClick={() => router.push('/dashboard')}
-                  sx={{ color: '#EFE9E7', fontWeight: 500 }}
-                >
-                  Dashboard
-                </Button>
-                <Button
-                  color="inherit"
-                  onClick={() => router.push('/history')}
-                  sx={{ color: '#EFE9E7', fontWeight: 500 }}
-                >
-                  History
-                </Button>
-                <ThemeToggle />
-                <IconButton onClick={handleProfileMenuOpen}>
-                  <Avatar
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      bgcolor: '#EFE9E7',
-                      color: '#F46036',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {user?.email?.[0]?.toUpperCase() || 'U'}
-                  </Avatar>
-                </IconButton>
-              </>
-            )}
-
-            {/* Mobile Navigation - Menu button */}
-            {isMobile && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                onClick={() => setDrawerOpen(true)}
-                sx={{
-                  color: '#EFE9E7',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-                }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-          </Box>
-          <Menu
-            anchorEl={profileMenuAnchor}
-            open={Boolean(profileMenuAnchor)}
-            onClose={handleProfileMenuClose}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          >
-            <MenuItem onClick={handleProfileMenuClose}>
-              <PersonIcon sx={{ mr: 1 }} />
-              Profile
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <LogoutIcon sx={{ mr: 1 }} />
-              Logout
-            </MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
+      <AppHeader title="Progress Tracker" />
 
       <Container maxWidth="lg" sx={{ py: 3 }}>
         <motion.div initial="initial" animate="animate" variants={staggerContainer}>
@@ -582,7 +385,7 @@ export default function ProgressPage() {
                           <YAxis />
                           <Tooltip
                             formatter={(value: any, name: any) => [
-                              name === 'volume' ? `${value} kg` : value,
+                              name === 'volume' ? `${value} ${useMetricSystem ? 'kg' : 'lbs'}` : value,
                               name === 'volume' ? 'Total Volume' : 'Total Sets',
                             ]}
                           />
@@ -689,17 +492,17 @@ export default function ProgressPage() {
                             </TableCell>
                             <TableCell align="center">
                               <Typography variant="body2">
-                                {stat.bestSet.weight}kg × {stat.bestSet.reps}
+                                <WeightDisplay weight={stat.bestSet.weight} /> × {stat.bestSet.reps}
                               </Typography>
                             </TableCell>
                             <TableCell align="center">
                               <Typography variant="body2" fontWeight="bold">
-                                {stat.bestSet.oneRM}kg
+                                <WeightDisplay weight={stat.bestSet.oneRM} />
                               </Typography>
                             </TableCell>
                             <TableCell align="center">
                               <Typography variant="body2">
-                                {Math.round(stat.totalVolume)}kg
+                                <WeightDisplay weight={Math.round(stat.totalVolume)} />
                               </Typography>
                             </TableCell>
                             <TableCell align="center">
@@ -743,9 +546,6 @@ export default function ProgressPage() {
           </motion.div>
         </motion.div>
       </Container>
-
-      {/* Navigation Drawer (Mobile) */}
-      {isMobile && renderNavigationDrawer()}
     </Box>
   );
 }

@@ -220,6 +220,52 @@ router.post('/logout', (_req: Request, res: Response): void => {
   });
 });
 
+// GET /api/v1/auth/profile
+router.get('/profile', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        error: { message: 'User not authenticated' },
+      });
+      return;
+    }
+
+    // Get user profile
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: { message: 'User not found' },
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' },
+    });
+  }
+});
+
 // DELETE /api/v1/auth/account
 router.delete('/account', authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {

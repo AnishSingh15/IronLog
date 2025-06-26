@@ -6,7 +6,7 @@ const API_BASE = 'https://ironlog.onrender.com/api/v1';
 async function testAPI() {
   try {
     console.log('🔐 Testing login API...');
-    
+
     const loginResponse = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: {
@@ -26,9 +26,9 @@ async function testAPI() {
 
     const loginData = await loginResponse.json();
     console.log('✅ Login successful:', loginData.success);
-    
+
     const token = loginData.data.accessToken;
-    
+
     // Test exercises endpoint
     console.log('📋 Testing exercises API...');
     const exercisesResponse = await fetch(`${API_BASE}/exercises`, {
@@ -43,10 +43,13 @@ async function testAPI() {
     }
 
     const exercisesData = await exercisesResponse.json();
-    console.log('✅ Exercises fetched successfully:', exercisesData.data.exercises.length, 'exercises');
-    
+    console.log(
+      '✅ Exercises fetched successfully:',
+      exercisesData.data.exercises.length,
+      'exercises'
+    );
+
     console.log('🎉 All API endpoints working correctly!');
-    
   } catch (error) {
     console.error('❌ Error testing API:', error.message);
   }

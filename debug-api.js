@@ -5,19 +5,19 @@ const API_BASE_URL = 'http://localhost:3001';
 function testAPIConstruction(baseURL) {
   const cleanBaseURL = baseURL.replace(/\/api\/v1\/?$/, '');
   const finalBaseURL = `${cleanBaseURL}/api/v1`;
-  
+
   console.log('🔍 API Construction Test:', {
     originalBaseURL: baseURL,
     cleanBaseURL,
-    finalBaseURL
+    finalBaseURL,
   });
-  
+
   // Test endpoint construction
   const endpoint = '/auth/login';
   const finalURL = `${finalBaseURL}${endpoint}`;
-  
+
   console.log('🔍 Final URL:', finalURL);
-  
+
   return finalURL;
 }
 

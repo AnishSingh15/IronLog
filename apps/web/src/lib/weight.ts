@@ -7,7 +7,7 @@
  * Convert pounds to kilograms
  */
 export function lbsToKg(lbs: number): number {
-  return Math.round((lbs * 0.453592) * 10) / 10; // Round to 1 decimal place
+  return Math.round(lbs * 0.453592 * 10) / 10; // Round to 1 decimal place
 }
 
 /**
@@ -38,7 +38,7 @@ export function formatWeightCompact(lbs: number): string {
  */
 export function parseWeightInput(input: string): number {
   const cleanInput = input.trim().toLowerCase();
-  
+
   if (cleanInput.includes('kg')) {
     const kg = parseFloat(cleanInput.replace(/[^0-9.]/g, ''));
     return kgToLbs(kg); // Convert kg to lbs for storage

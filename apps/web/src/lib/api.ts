@@ -52,10 +52,10 @@ class TokenManager {
     // Set tokens in localStorage with 7-day expiry
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
 
-    console.log('🔐 Setting tokens:', { 
-      accessToken: tokens.accessToken?.substring(0, 20) + '...', 
+    console.log('🔐 Setting tokens:', {
+      accessToken: tokens.accessToken?.substring(0, 20) + '...',
       refreshToken: tokens.refreshToken?.substring(0, 20) + '...',
-      expiresAt 
+      expiresAt,
     });
 
     localStorage.setItem(this.ACCESS_TOKEN_KEY, tokens.accessToken);
@@ -98,12 +98,12 @@ class TokenManager {
   static getAccessToken(): string | null {
     const tokens = this.getTokens();
     const accessToken = tokens?.accessToken || null;
-    
-    console.log('🔐 Getting access token:', { 
-      hasToken: !!accessToken, 
-      tokenPreview: accessToken?.substring(0, 20) + '...' 
+
+    console.log('🔐 Getting access token:', {
+      hasToken: !!accessToken,
+      tokenPreview: accessToken?.substring(0, 20) + '...',
     });
-    
+
     return accessToken;
   }
 }
@@ -116,12 +116,12 @@ export class ApiClient {
     // Simple and reliable: just append /api/v1 to clean base URL
     const cleanBaseURL = baseURL.replace(/\/+$/, ''); // Remove trailing slashes
     this.baseURL = `${cleanBaseURL}/api/v1`;
-    
+
     // Always log for debugging
     console.log('🔍 API Client Initialized:', {
       inputBaseURL: baseURL,
       cleanBaseURL,
-      finalBaseURL: this.baseURL
+      finalBaseURL: this.baseURL,
     });
   }
 
@@ -130,13 +130,13 @@ export class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     // Debug logging - ALWAYS log to catch the issue
     console.log('🔍 API Request Debug:', {
       endpoint,
       baseURL: this.baseURL,
       finalURL: url,
-      envVar: API_BASE_URL
+      envVar: API_BASE_URL,
     });
 
     // Add authorization header if token exists
@@ -148,7 +148,10 @@ export class ApiClient {
 
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
-      console.log('🔐 Adding auth header:', { hasToken: true, tokenPreview: accessToken.substring(0, 20) + '...' });
+      console.log('🔐 Adding auth header:', {
+        hasToken: true,
+        tokenPreview: accessToken.substring(0, 20) + '...',
+      });
     } else {
       console.log('🔐 No access token available for request');
     }
@@ -202,17 +205,13 @@ export class ApiClient {
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<ApiResponse<{ user: User; tokens: AuthTokens }>> {
     console.log('🔐 Attempting login for:', credentials.email);
-    
+
     const response = await this.makeRequest<{ user: User; tokens: AuthTokens }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
 
-    console.log('🔐 Login response:', { 
-      success: response.success, 
-      hasTokens: !!response.data?.tokens,
-      tokensData: response.data?.tokens ? 'present' : 'missing'
-    });
+    console.log('🔐 Full login response:', JSON.stringify(response, null, 2));
 
     // Store tokens on successful login
     if (response.success && response.data?.tokens) {
@@ -220,6 +219,12 @@ export class ApiClient {
       console.log('🔐 Tokens stored successfully');
     } else {
       console.error('🔐 Failed to store tokens - no tokens in response');
+      console.error('🔐 Response structure:', {
+        success: response.success,
+        hasData: !!response.data,
+        dataKeys: response.data ? Object.keys(response.data) : 'no data',
+        hasTokens: !!response.data?.tokens,
+      });
     }
 
     return response;
@@ -277,6 +282,11 @@ export class ApiClient {
     }
   }
 
+  // Token management
+  getStoredTokens(): AuthTokens | null {
+    return TokenManager.getTokens();
+  }
+
   async getCurrentUser(): Promise<ApiResponse<{ user: User }>> {
     return this.makeRequest<{ user: User }>('/auth/me');
   }
@@ -284,6 +294,50 @@ export class ApiClient {
   // Workout-specific endpoints
   async getTodayWorkout(): Promise<ApiResponse<any>> {
     return this.get('/workouts/today');
+  }
+
+  async createRestDay(): Promise<ApiResponse<any>> {
+    return this.post('/workouts/rest-day');
+  }
+
+  // Exercise management endpoints
+  async getExercises(params?: { muscleGroup?: string; search?: string }): Promise<ApiResponse<any>> {
+    const searchParams = new URLSearchParams();
+    if (params?.muscleGroup) searchParams.append('muscleGroup', params.muscleGroup);
+    if (params?.search) searchParams.append('search', params.search);
+    
+    const endpoint = `/exercises${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    return this.get(endpoint);
+  }
+
+  async getPopularExercises(limit: number = 10): Promise<ApiResponse<any>> {
+    return this.get(`/exercises/popular?limit=${limit}`);
+  }
+
+  async getExercise(id: string): Promise<ApiResponse<any>> {
+    return this.get(`/exercises/${id}`);
+  }
+
+  async createExercise(exercise: {
+    name: string;
+    muscleGroup: string;
+    defaultSets?: number;
+    defaultReps?: number;
+  }): Promise<ApiResponse<any>> {
+    return this.post('/exercises', exercise);
+  }
+
+  async updateExercise(id: string, exercise: {
+    name?: string;
+    muscleGroup?: string;
+    defaultSets?: number;
+    defaultReps?: number;
+  }): Promise<ApiResponse<any>> {
+    return this.put(`/exercises/${id}`, exercise);
+  }
+
+  async deleteExercise(id: string): Promise<ApiResponse<any>> {
+    return this.delete(`/exercises/${id}`);
   }
 
   // Generic GET request
@@ -358,28 +412,41 @@ export const apiClient = {
     return api.refreshToken();
   },
 
+  getStoredTokens() {
+    return api.getStoredTokens();
+  },
+
   async getTodayWorkout() {
     return api.getTodayWorkout();
   },
 
-  async get(endpoint: string) {
-    return api.get(endpoint);
+  async createRestDay() {
+    return api.createRestDay();
   },
 
-  async post(endpoint: string, data?: any) {
-    return api.post(endpoint, data);
+  // Exercise management methods
+  async getExercises(params?: { muscleGroup?: string; search?: string }) {
+    return api.getExercises(params);
   },
 
-  async put(endpoint: string, data?: any) {
-    return api.put(endpoint, data);
+  async getPopularExercises(limit?: number) {
+    return api.getPopularExercises(limit);
   },
 
-  async patch(endpoint: string, data?: any) {
-    return api.patch(endpoint, data);
+  async getExercise(id: string) {
+    return api.getExercise(id);
   },
 
-  async delete(endpoint: string) {
-    return api.delete(endpoint);
+  async createExercise(exercise: { name: string; muscleGroup: string; defaultSets?: number; defaultReps?: number }) {
+    return api.createExercise(exercise);
+  },
+
+  async updateExercise(id: string, exercise: { name?: string; muscleGroup?: string; defaultSets?: number; defaultReps?: number }) {
+    return api.updateExercise(id, exercise);
+  },
+
+  async deleteExercise(id: string) {
+    return api.deleteExercise(id);
   },
 };
 

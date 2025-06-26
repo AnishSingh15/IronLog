@@ -1,23 +1,22 @@
 'use client';
 
+import { AppHeader } from '@/components/AppHeader';
 import { ThemeToggle } from '@/components/theme-toggle';
-import apiClient from '@/lib/api';
-import { formatWeight } from '@/lib/weight';
+import { WeightDisplay } from '@/components/WeightComponents';
+import { useWeightUnit } from '@/contexts/WeightUnitContext';
+import apiClient, { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import {
   ArrowBack as ArrowBackIcon,
   ArrowForward as ArrowForwardIcon,
   CalendarToday as CalendarIcon,
-  Dashboard as DashboardIcon,
   LocalFireDepartment as FireIcon,
   FitnessCenter as FitnessCenterIcon,
-  Menu as MenuIcon,
   Timeline as TimelineIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import {
   Alert,
-  AppBar,
   Box,
   Button,
   Card,
@@ -25,7 +24,6 @@ import {
   Chip,
   Container,
   Divider,
-  Drawer,
   Grid,
   IconButton,
   List,
@@ -137,13 +135,13 @@ export default function HistoryPage() {
   const router = useRouter();
   const theme = useTheme();
   const { user, isAuthenticated } = useAuthStore();
+  const { useMetricSystem } = useWeightUnit();
   const [workoutDays, setWorkoutDays] = useState<WorkoutDay[]>([]);
   const [stats, setStats] = useState<WorkoutStats | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<WorkoutDay | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -165,7 +163,7 @@ export default function HistoryPage() {
       const startDate = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
       const endDate = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
 
-      const response = await apiClient.get(
+      const response = await api.get(
         `/workouts/history?startDate=${startDate}&endDate=${endDate}`
       );
       setWorkoutDays((response.data as any)?.data || response.data);
@@ -179,7 +177,7 @@ export default function HistoryPage() {
 
   const loadWorkoutStats = async () => {
     try {
-      const response = await apiClient.get('/workouts/stats');
+      const response = await api.get('/workouts/stats');
       setStats((response.data as any)?.data || response.data);
     } catch (error) {
       console.error('Failed to load workout stats:', error);
@@ -558,11 +556,11 @@ export default function HistoryPage() {
                       {set.actualWeight !== null && set.actualReps !== null ? (
                         <Box sx={{ mt: 1 }}>
                           <Typography variant="body2" fontWeight="medium">
-                            ✅ {formatWeight(set.actualWeight)} × {set.actualReps} reps
+                            ✅ <WeightDisplay weight={set.actualWeight} /> × {set.actualReps} reps
                           </Typography>
                           {set.plannedWeight !== null && set.plannedReps !== null && (
                             <Typography variant="caption" color="text.secondary" display="block">
-                              Planned: {formatWeight(set.plannedWeight!)} × {set.plannedReps} reps
+                              Planned: <WeightDisplay weight={set.plannedWeight!} /> × {set.plannedReps} reps
                             </Typography>
                           )}
                         </Box>
@@ -589,81 +587,6 @@ export default function HistoryPage() {
     );
   };
 
-  const renderNavigationDrawer = () => (
-    <Drawer
-      anchor="right"
-      open={drawerOpen}
-      onClose={() => setDrawerOpen(false)}
-      PaperProps={{
-        sx: {
-          width: 280,
-          background:
-            theme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, #424242 0%, #616161 100%)'
-              : 'linear-gradient(135deg, #3D9970 0%, #A3B18A 100%)',
-          color: theme.palette.mode === 'dark' ? '#fff' : 'white',
-          boxShadow: theme.shadows[16],
-        },
-      }}
-    >
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, textAlign: 'center' }}>
-          📊 Workout History
-        </Typography>
-        <Divider sx={{ bgcolor: 'rgba(255,255,255,0.3)', mb: 2 }} />
-      </Box>
-
-      <List sx={{ px: 1 }}>
-        <ListItem disablePadding>
-          <ListItemButton
-            onClick={() => {
-              router.push('/dashboard');
-              setDrawerOpen(false);
-            }}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-            }}
-          >
-            <ListItemIcon>
-              <DashboardIcon sx={{ color: 'white' }} />
-            </ListItemIcon>
-            <ListItemText primary="Dashboard" />
-          </ListItemButton>
-        </ListItem>
-
-        <ListItem disablePadding>
-          <ListItemButton
-            onClick={() => {
-              router.push('/progress');
-              setDrawerOpen(false);
-            }}
-            sx={{
-              borderRadius: 2,
-              mb: 1,
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-            }}
-          >
-            <ListItemIcon>
-              <TrendingUpIcon sx={{ color: 'white' }} />
-            </ListItemIcon>
-            <ListItemText primary="Progress & Analytics" />
-          </ListItemButton>
-        </ListItem>
-      </List>
-
-      <Box sx={{ flexGrow: 1 }} />
-
-      <Box sx={{ p: 2, textAlign: 'center' }}>
-        <ThemeToggle />
-        <Typography variant="caption" sx={{ display: 'block', mt: 1, opacity: 0.7 }}>
-          Toggle Dark/Light Mode
-        </Typography>
-      </Box>
-    </Drawer>
-  );
-
   if (!isAuthenticated) {
     return null;
   }
@@ -671,79 +594,7 @@ export default function HistoryPage() {
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
       {/* Enhanced Header */}
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{
-          background: 'linear-gradient(135deg, #3D9970 0%, #A3B18A 100%)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: 'none',
-          boxShadow: '0 8px 32px rgba(61, 153, 112, 0.15)',
-        }}
-      >
-        <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-            <TimelineIcon sx={{ color: '#EFE9E7', fontSize: 28 }} />
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                fontWeight: 'bold',
-                color: '#EFE9E7',
-                textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              }}
-            >
-              Workout History
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* Desktop Navigation - Hidden on mobile */}
-            {!isMobile && (
-              <>
-                <Button
-                  color="inherit"
-                  onClick={() => router.push('/dashboard')}
-                  sx={{
-                    color: '#EFE9E7',
-                    fontWeight: 500,
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-                  }}
-                >
-                  Dashboard
-                </Button>
-                <Button
-                  color="inherit"
-                  onClick={() => router.push('/progress')}
-                  sx={{
-                    color: '#EFE9E7',
-                    fontWeight: 500,
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-                  }}
-                >
-                  Progress
-                </Button>
-                <ThemeToggle />
-              </>
-            )}
-
-            {/* Mobile Navigation - Drawer trigger */}
-            {isMobile && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                onClick={() => setDrawerOpen(true)}
-                sx={{
-                  color: '#EFE9E7',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
-                }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-          </Box>
-        </Toolbar>
-      </AppBar>
+      <AppHeader title="Workout History" />
 
       <Container maxWidth="lg" sx={{ py: 3, pb: 10 }}>
         <motion.div variants={staggerContainer} initial="initial" animate="animate">
@@ -818,9 +669,6 @@ export default function HistoryPage() {
           )}
         </motion.div>
       </Container>
-
-      {/* Render navigation drawer */}
-      {renderNavigationDrawer()}
     </Box>
   );
 }

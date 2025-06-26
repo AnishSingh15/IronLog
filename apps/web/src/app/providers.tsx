@@ -1,6 +1,8 @@
 'use client';
 
+import { AuthProvider } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/theme-provider';
+import { WeightUnitProvider } from '@/contexts/WeightUnitContext';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 import { useTheme } from 'next-themes';
@@ -221,8 +223,14 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <ThemeProvider>
-      <MuiThemeWrapper>{children}</MuiThemeWrapper>
-    </ThemeProvider>
+    <WeightUnitProvider>
+      <ThemeProvider>
+        <MuiThemeWrapper>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </MuiThemeWrapper>
+      </ThemeProvider>
+    </WeightUnitProvider>
   );
 }

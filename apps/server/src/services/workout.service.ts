@@ -331,6 +331,53 @@ export class WorkoutService {
 
     return workoutWithRecords;
   }
+
+  async createRestDay(userId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if workout day already exists for today
+    const existingWorkout = await this.getTodayWorkout(userId);
+    if (existingWorkout) {
+      // Update existing workout to be a rest day
+      const updatedWorkout = await prisma.workoutDay.update({
+        where: { id: existingWorkout.id },
+        data: {
+          completed: true,
+          isRestDay: true,
+        },
+        include: {
+          setRecords: {
+            include: {
+              exercise: true,
+            },
+            orderBy: [{ exercise: { name: 'asc' } }, { setIndex: 'asc' }],
+          },
+        },
+      });
+      return updatedWorkout;
+    }
+
+    // Create new rest day workout
+    const restDayWorkout = await prisma.workoutDay.create({
+      data: {
+        userId,
+        date: today,
+        completed: true,
+        isRestDay: true,
+      },
+      include: {
+        setRecords: {
+          include: {
+            exercise: true,
+          },
+          orderBy: [{ exercise: { name: 'asc' } }, { setIndex: 'asc' }],
+        },
+      },
+    });
+
+    return restDayWorkout;
+  }
 }
 
 export const workoutService = new WorkoutService();

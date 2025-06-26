@@ -16,9 +16,16 @@ export function useAuth() {
       const response = await apiClient.login({ email, password });
       console.log('✅ Login successful:', response);
 
-      setUser((response.data as any)?.user);
-      router.push('/dashboard');
-      return { success: true };
+      if (response.success && response.data?.user) {
+        setUser(response.data.user);
+        router.push('/dashboard');
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: 'Login failed - invalid response',
+        };
+      }
     } catch (error: any) {
       console.error('❌ Login error:', error);
       console.error('Error response:', error.response?.data);
@@ -90,17 +97,50 @@ export function useAuth() {
   };
 
   const checkAuth = async () => {
-    const token = Cookies.get('accessToken');
-    if (!token) {
+    console.log('🔐 checkAuth called');
+    
+    // Check if we have stored tokens in localStorage
+    const tokens = apiClient.getStoredTokens();
+    console.log('🔐 Stored tokens check:', {
+      hasTokens: !!tokens,
+      hasAccessToken: !!tokens?.accessToken,
+      hasRefreshToken: !!tokens?.refreshToken,
+    });
+
+    if (!tokens) {
+      console.log('🔐 No tokens found, logging out');
       logout();
       return false;
     }
 
     try {
-      const response = await apiClient.refreshToken();
-      setUser((response.data as any)?.user);
-      return true;
+      console.log('🔐 Attempting token refresh...');
+      // Try to refresh the token to verify it's still valid
+      const refreshResponse = await apiClient.refreshToken();
+      console.log('🔐 Token refresh response:', refreshResponse);
+      
+      if (refreshResponse.success) {
+        console.log('🔐 Token refreshed, now getting user profile...');
+        // Get user profile with the new token
+        const profileResponse = await apiClient.get('/auth/profile');
+        console.log('🔐 Profile response:', profileResponse);
+        
+        if (profileResponse.success && profileResponse.data) {
+          setUser(profileResponse.data as any);
+          console.log('🔐 Auth restored successfully');
+          return true;
+        } else {
+          console.log('🔐 Failed to get user profile');
+          logout();
+          return false;
+        }
+      } else {
+        console.log('🔐 Token refresh failed');
+        logout();
+        return false;
+      }
     } catch (error) {
+      console.error('🔐 Token refresh error:', error);
       logout();
       return false;
     }
@@ -108,10 +148,23 @@ export function useAuth() {
 
   // Auto-check authentication on mount
   useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      checkAuth();
-    }
-  }, []);
+    let mounted = true;
+    
+    const initAuth = async () => {
+      console.log('🔐 useAuth effect triggered:', { isAuthenticated, isLoading });
+      
+      if (!isAuthenticated && !isLoading && mounted) {
+        console.log('🔐 Not authenticated and not loading, checking auth...');
+        await checkAuth();
+      }
+    };
+    
+    initAuth();
+    
+    return () => {
+      mounted = false;
+    };
+  }, []); // Only run once on mount
 
   return {
     user,
