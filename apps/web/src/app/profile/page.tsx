@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import apiClient from '@/lib/api';
+import apiClient, { api } from '@/lib/api';
 import { profileUpdateSchema } from '@/lib/validations';
 import { useAuthStore } from '@/store/auth';
 import {
@@ -75,7 +75,7 @@ export default function ProfilePage() {
       // Validate form data
       profileUpdateSchema.parse(values);
 
-      const response = await apiClient.put('/auth/profile', values);
+      const response = await api.put('/auth/profile', values);
 
       // Update user in store
       setUser((response.data as any)?.user);
@@ -108,7 +108,7 @@ export default function ProfilePage() {
         return;
       }
 
-      await apiClient.put('/auth/password', {
+      await api.put('/auth/password', {
         currentPassword: values.currentPassword,
         newPassword: values.newPassword,
       });
@@ -133,7 +133,7 @@ export default function ProfilePage() {
     }
 
     try {
-      await apiClient.delete('/auth/account');
+      await api.delete('/auth/account');
       logout();
       router.push('/');
     } catch (error: any) {
