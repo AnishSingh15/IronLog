@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import apiClient, { api } from '@/lib/api';
+import { api } from '@/lib/api';
 import { profileUpdateSchema } from '@/lib/validations';
 import { useAuthStore } from '@/store/auth';
 import {

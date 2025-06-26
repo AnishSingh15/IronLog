@@ -2,8 +2,23 @@
  * API client for IronLog application with authentication handling
  */
 
-// Base configuration - hardcode for now to fix the immediate issue
-const API_BASE_URL = 'http://localhost:3001';
+// Base configuration - require environment variable in production
+const getApiBaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  // In production, the environment variable must be set
+  if (process.env.NODE_ENV === 'production' && !envUrl) {
+    throw new Error(
+      'NEXT_PUBLIC_API_URL environment variable is required in production. ' +
+        'Please set it in your Vercel deployment settings.'
+    );
+  }
+
+  // In development, fallback to localhost
+  return envUrl || 'http://localhost:3001';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Types
 export interface ApiResponse<T = any> {
@@ -117,8 +132,12 @@ export class ApiClient {
     const cleanBaseURL = baseURL.replace(/\/+$/, ''); // Remove trailing slashes
     this.baseURL = `${cleanBaseURL}/api/v1`;
 
-    // Always log for debugging
+    // Always log for debugging with environment info
     console.log('🔍 API Client Initialized:', {
+      nodeEnv: process.env.NODE_ENV,
+      envVar: process.env.NEXT_PUBLIC_API_URL,
+      isProduction: process.env.NODE_ENV === 'production',
+      usingFallback: !process.env.NEXT_PUBLIC_API_URL && process.env.NODE_ENV !== 'production',
       inputBaseURL: baseURL,
       cleanBaseURL,
       finalBaseURL: this.baseURL,
