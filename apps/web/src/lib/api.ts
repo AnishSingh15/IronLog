@@ -6,16 +6,28 @@
 const getApiBaseUrl = (): string => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
 
+  console.log('🔍 getApiBaseUrl called:', {
+    nodeEnv: process.env.NODE_ENV,
+    envUrl,
+    envUrlType: typeof envUrl,
+    envUrlLength: envUrl?.length,
+    isProduction: process.env.NODE_ENV === 'production',
+  });
+
   // In production, the environment variable must be set
   if (process.env.NODE_ENV === 'production' && !envUrl) {
-    throw new Error(
+    const error = new Error(
       'NEXT_PUBLIC_API_URL environment variable is required in production. ' +
         'Please set it in your Vercel deployment settings.'
     );
+    console.error('🚨 Production API URL Error:', error.message);
+    throw error;
   }
 
   // In development, fallback to localhost
-  return envUrl || 'http://localhost:3001';
+  const result = envUrl || 'http://localhost:3001';
+  console.log('🔍 getApiBaseUrl result:', result);
+  return result;
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -141,6 +153,11 @@ export class ApiClient {
       inputBaseURL: baseURL,
       cleanBaseURL,
       finalBaseURL: this.baseURL,
+      // Additional debug info
+      allEnvVars: Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_')),
+      envVarValue: process.env.NEXT_PUBLIC_API_URL,
+      envVarType: typeof process.env.NEXT_PUBLIC_API_URL,
+      envVarLength: process.env.NEXT_PUBLIC_API_URL?.length,
     });
   }
 
