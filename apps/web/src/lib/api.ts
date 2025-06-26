@@ -1,7 +1,7 @@
 /**
  * API client for IronLog application with authentication handling
  */
-
+//new deploy
 // Base configuration - require environment variable in production
 const getApiBaseUrl = (): string => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
